@@ -1,0 +1,9 @@
+spring:
+    application:
+        name: platform-service
+
+server:
+    port: 8080
+
+app:
+    version: 0.1.0
