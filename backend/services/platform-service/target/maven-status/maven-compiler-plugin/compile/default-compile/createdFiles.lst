@@ -1,2 +1,3 @@
 ru/itmo/wmp/platform/api/HealthController.class
+ru/itmo/wmp/platform/config/properties/AppProperties.class
 ru/itmo/wmp/platform/PlatformServiceApplication.class
