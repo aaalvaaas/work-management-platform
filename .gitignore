@@ -1,7 +1,9 @@
 .idea/
 .vscode/
 
-.env.local
+target/
+
+.env
 
 .DS_Store
 Thumbs.db
