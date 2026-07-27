@@ -1,5 +1,6 @@
 package ru.itmo.wmp.platform.api;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,10 @@ public class UserController {
     private final UserMapper userMapper;
 
     @GetMapping
+    @Operation(
+        summary = "Get all users",
+        description = "Returns list of registered users"
+    )
     public List<UserResponse> getUsers() {
         return userService.findAll()
             .stream()
@@ -28,6 +33,9 @@ public class UserController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Create user"
+    )
     public UserResponse create(
         @Valid @RequestBody UserRequest request
         ) {
@@ -39,6 +47,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @Operation(
+        summary = "Get user by id"
+    )
     public UserResponse getById(
         @PathVariable Long id
     ) {
@@ -48,6 +59,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @Operation(
+        summary = "Update user by id"
+    )
     public UserResponse update(
         @PathVariable Long id,
         @Valid @RequestBody UserRequest request
@@ -60,6 +74,9 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(
+        summary = "Delete user by id"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
         @PathVariable Long id
