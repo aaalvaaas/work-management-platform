@@ -1,10 +1,11 @@
 package ru.itmo.wmp.platform.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.View;
 import ru.itmo.wmp.platform.dto.response.ErrorResponse;
 
 import java.util.HashMap;
@@ -12,12 +13,6 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private final View error;
-
-    public GlobalExceptionHandler(View error) {
-        this.error = error;
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(
         MethodArgumentNotValidException ex
@@ -34,5 +29,19 @@ public class GlobalExceptionHandler {
                 "Validation failed",
                 errors
             ));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(
+        UserNotFoundException ex
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(
+                new ErrorResponse(
+                    ex.getMessage(),
+                    Map.of()
+                )
+            );
     }
 }
