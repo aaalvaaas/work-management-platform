@@ -1,11 +1,12 @@
 package ru.itmo.wmp.platform.api;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.platform.application.UserService;
 import ru.itmo.wmp.platform.domain.User;
-import ru.itmo.wmp.platform.dto.UserRequest;
-import ru.itmo.wmp.platform.dto.UserResponse;
+import ru.itmo.wmp.platform.dto.request.UserRequest;
+import ru.itmo.wmp.platform.dto.response.UserResponse;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class UserController {
 
     @PostMapping
     public UserResponse create(
-        @RequestBody UserRequest request
+        @Valid @RequestBody UserRequest request
         ) {
         User user = new User();
 

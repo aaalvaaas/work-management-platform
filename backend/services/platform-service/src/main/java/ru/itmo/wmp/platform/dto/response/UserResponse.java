@@ -1,4 +1,4 @@
-package ru.itmo.wmp.platform.dto;
+package ru.itmo.wmp.platform.dto.response;
 
 public record UserResponse(
     Long id,
