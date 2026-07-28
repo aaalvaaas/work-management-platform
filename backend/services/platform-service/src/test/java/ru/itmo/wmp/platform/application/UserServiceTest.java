@@ -139,19 +139,23 @@ public class UserServiceTest {
 
     @Test
     void shouldDeleteUser() {
-        when(userRepository.existsById(1L))
-            .thenReturn(true);
+        User user = new User();
+
+        user.setId(1L);
+
+        when(userRepository.findById(1L))
+            .thenReturn(Optional.of(user));
 
         userService.delete(1L);
 
         verify(userRepository)
-            .deleteById(1L);
+            .delete(user);
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingUnknownUser() {
-        when(userRepository.existsById(999L))
-            .thenReturn(false);
+        when(userRepository.findById(999L))
+            .thenReturn(Optional.empty());
 
         assertThrows(
             UserNotFoundException.class,
@@ -159,6 +163,6 @@ public class UserServiceTest {
         );
 
         verify(userRepository, never())
-            .deleteById(999L);
+            .delete(any(User.class));
     }
 }
