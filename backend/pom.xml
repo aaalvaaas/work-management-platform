@@ -23,6 +23,7 @@
 
     <modules>
         <module>services/platform-service</module>
+        <module>services/mail-service</module>
     </modules>
 
     <properties>
