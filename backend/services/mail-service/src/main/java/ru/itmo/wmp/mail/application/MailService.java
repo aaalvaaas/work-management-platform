@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.domain.MailProcessingStatus;
 import ru.itmo.wmp.mail.domain.MailRepository;
+import ru.itmo.wmp.mail.domain.MailStatusTransition;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
+import ru.itmo.wmp.mail.exception.InvalidMailStatusTransitionException;
 import ru.itmo.wmp.mail.exception.MailNotFoundException;
 
 import java.time.LocalDateTime;
@@ -27,33 +29,35 @@ public class MailService {
     }
 
     public MailMessage markAsProcessing(String messageId) {
-        MailMessage mail = getByMessageId(messageId);
-
-        mail.setProcessingStatus(MailProcessingStatus.PROCESSING);
-
-        return mailRepository.save(mail);
+        return changeStatus(messageId, MailProcessingStatus.PROCESSING);
     }
 
     public MailMessage markAsProcessed(String messageId) {
-        MailMessage mail = getByMessageId(messageId);
-
-        mail.setProcessingStatus(MailProcessingStatus.PROCESSED);
-        mail.setProcessedAt(LocalDateTime.now());
-
-        return mailRepository.save(mail);
+        return changeStatus(messageId, MailProcessingStatus.PROCESSED);
     }
 
     public MailMessage markAsFailed(String messageId) {
-        MailMessage mail = getByMessageId(messageId);
-
-        mail.setProcessingStatus(MailProcessingStatus.FAILED);
-        mail.setProcessedAt(LocalDateTime.now());
-
-        return mailRepository.save(mail);
+        return changeStatus(messageId, MailProcessingStatus.FAILED);
     }
 
     private MailMessage getByMessageId(String messageId) {
         return mailRepository.findByMessageId(messageId)
             .orElseThrow(() -> new MailNotFoundException(messageId));
+    }
+
+    private MailMessage changeStatus(String messageId, MailProcessingStatus newStatus) {
+        MailMessage mail = getByMessageId(messageId);
+
+        if (!MailStatusTransition.canMove(mail.getProcessingStatus(), newStatus)) {
+            throw new InvalidMailStatusTransitionException(mail.getProcessingStatus(), newStatus);
+        }
+
+        mail.setProcessingStatus(newStatus);
+
+        if (newStatus == MailProcessingStatus.PROCESSED || newStatus == MailProcessingStatus.FAILED) {
+            mail.setProcessedAt(LocalDateTime.now());
+        }
+
+        return mailRepository.save(mail);
     }
 }
