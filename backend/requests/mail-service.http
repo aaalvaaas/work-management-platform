@@ -8,8 +8,8 @@ Content-Type: application/json
 
 {
     "messageId": "mail-001",
-    "senderEmail": "sender@test.com",
-    "recipientEmail": "recipient@test.com",
+    "senderEmail": "sendertest.com",
+    "recipientEmail": "recipienttest.com",
     "subject": "Hello",
     "plainTextBody": "This is a test email."
 }

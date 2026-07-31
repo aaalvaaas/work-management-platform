@@ -20,7 +20,7 @@ public class MailController {
 
     @PostMapping
     public MailResponse receiveMail(
-        @RequestBody MailRequest request) {
+        @Valid @RequestBody MailRequest request) {
         MailMessage mail = mailMapper.toEntity(request);
 
         MailMessage savedMail = mailService.receiveMail(mail);
