@@ -13,3 +13,15 @@ Content-Type: application/json
     "subject": "Hello",
     "plainTextBody": "This is a test email."
 }
+
+###
+### Get all mails
+###
+GET {{baseUrl}}/mails
+Accept: application/json
+
+###
+### Get mail by messageId
+###
+GET {{baseUrl}}/mails/mail-001
+Accept: application/json

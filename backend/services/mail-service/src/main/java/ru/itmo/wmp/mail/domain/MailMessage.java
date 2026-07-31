@@ -27,7 +27,6 @@ public class MailMessage {
     @Column(nullable = false)
     private String subject;
 
-    @Lob
     @Column(nullable = false)
     private String plainTextBody;
 
