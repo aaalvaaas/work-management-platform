@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.domain.MailRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,5 +26,10 @@ public class MailRepositoryAdapter implements MailRepository {
     @Override
     public boolean existsByMessageId(String messageId) {
         return repository.existsByMessageId(messageId);
+    }
+
+    @Override
+    public List<MailMessage> findAll() {
+        return repository.findAll();
     }
 }

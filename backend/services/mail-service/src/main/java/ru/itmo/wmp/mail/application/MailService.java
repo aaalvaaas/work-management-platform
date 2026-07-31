@@ -11,6 +11,7 @@ import ru.itmo.wmp.mail.exception.InvalidMailStatusTransitionException;
 import ru.itmo.wmp.mail.exception.MailNotFoundException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,14 @@ public class MailService {
 
     public MailMessage markAsFailed(String messageId) {
         return changeStatus(messageId, MailProcessingStatus.FAILED);
+    }
+
+    public MailMessage getMail(String messageId) {
+        return getByMessageId(messageId);
+    }
+
+    public List<MailMessage> getAll() {
+        return mailRepository.findAll();
     }
 
     private MailMessage getByMessageId(String messageId) {
