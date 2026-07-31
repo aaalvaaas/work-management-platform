@@ -1,0 +1,15 @@
+@baseUrl = http://localhost:8080/api/v1
+
+###
+### Receive mail
+###
+POST {{baseUrl}}/mails
+Content-Type: application/json
+
+{
+    "messageId": "mail-001",
+    "senderEmail": "sender@test.com",
+    "recipientEmail": "recipient@test.com",
+    "subject": "Hello",
+    "plainTextBody": "This is a test email."
+}
