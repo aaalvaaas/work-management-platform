@@ -44,4 +44,25 @@ public class MailController {
 
         return mailMapper.toResponse(mail);
     }
+
+    @PatchMapping("/{messageId}/processing")
+    public MailResponse markProcessing(
+        @PathVariable String messageId
+    ) {
+        return mailMapper.toResponse(mailService.markAsProcessing(messageId));
+    }
+
+    @PatchMapping("/{messageId}/processed")
+    public MailResponse markProcessed(
+        @PathVariable String messageId
+    ) {
+        return mailMapper.toResponse(mailService.markAsProcessed(messageId));
+    }
+
+    @PatchMapping("/{messageId}/failed")
+    public MailResponse markFailed(
+        @PathVariable String messageId
+    ) {
+        return mailMapper.toResponse(mailService.markAsFailed(messageId));
+    }
 }

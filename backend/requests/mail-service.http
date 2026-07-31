@@ -25,3 +25,20 @@ Accept: application/json
 ###
 GET {{baseUrl}}/mails/mail-001
 Accept: application/json
+
+###
+### Move to processing
+###
+PATCH {{baseUrl}}/mails/mail-001/processing
+
+
+###
+### Move to processed
+###
+PATCH {{baseUrl}}/mails/mail-001/processed
+
+
+###
+### Move to failed
+###
+PATCH {{baseUrl}}/mails/mail-001/failed
