@@ -22,6 +22,9 @@ public class MailMessage {
     private String senderEmail;
 
     @Column(nullable = false)
+    private String recipientEmail;
+
+    @Column(nullable = false)
     private String subject;
 
     @Lob
