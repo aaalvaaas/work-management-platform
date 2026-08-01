@@ -7,7 +7,7 @@ public record MailProperties(
     String host,
     Integer port,
     String username,
-    String pasword,
+    String password,
     String folder,
     Boolean ssl
 ) {
