@@ -33,14 +33,14 @@ public class ImapMailClient {
         return Arrays.asList(messages);
     }
 
-    public List<MailMessage> fetchUnread() {
+    public List<ParsedMail> fetchUnread() {
         try {
             List<Message> messages = getUnreadMessages();
 
             return messages.stream()
                 .map(message -> {
                     try {
-                        return mailParser.parse(message);
+                        return new ParsedMail(message, mailParser.parse(message));
                     } catch (MessagingException e) {
                         throw new RuntimeException(e);
                     }

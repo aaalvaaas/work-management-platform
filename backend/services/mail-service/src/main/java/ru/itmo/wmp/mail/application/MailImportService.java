@@ -2,10 +2,9 @@ package ru.itmo.wmp.mail.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.itmo.wmp.mail.domain.MailMessage;
-import ru.itmo.wmp.mail.dto.response.MailImportResponse;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
+import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,14 +16,14 @@ public class MailImportService {
     private final MailService mailService;
 
     public MailImportResult importUnreadMails() {
-        List<MailMessage> mails = imapMailClient.fetchUnread();
+        List<ParsedMail> mails = imapMailClient.fetchUnread();
 
         AtomicInteger imported = new AtomicInteger();
         AtomicInteger skipped = new AtomicInteger();
 
-        mails.forEach(mail -> {
+        mails.forEach(parsedMail -> {
             try {
-                mailService.receiveMail(mail);
+                mailService.receiveMail(parsedMail.mailMessage());
                 imported.getAndIncrement();
             } catch (DuplicateMailException ignored) {
                 skipped.getAndIncrement();
