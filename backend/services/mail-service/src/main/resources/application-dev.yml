@@ -7,3 +7,12 @@ spring:
 logging:
     level:
         root: INFO
+
+mail:
+    imap:
+        host: imap.mail.ru
+        port: 993
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
+        folder: INBOX
+        ssl: true
