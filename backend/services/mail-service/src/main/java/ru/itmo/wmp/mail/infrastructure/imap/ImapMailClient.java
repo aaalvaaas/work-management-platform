@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.config.properties.MailProperties;
 import ru.itmo.wmp.mail.domain.MailMessage;
+import ru.itmo.wmp.mail.exception.MailImportException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +18,7 @@ public class ImapMailClient {
     private final MailProperties properties;
     private final MailParser mailParser;
 
-    public List<Message> getUnreadMessages() throws MessagingException {
+    private List<Message> getUnreadMessages() throws MessagingException {
         Store store = connect();
         Folder inbox = store.getFolder("INBOX");
         inbox.open(Folder.READ_ONLY);
@@ -32,18 +33,23 @@ public class ImapMailClient {
         return Arrays.asList(messages);
     }
 
-    public List<MailMessage> fetchUnread() throws MessagingException {
-        List<Message> messages = getUnreadMessages();
+    public List<MailMessage> fetchUnread() {
+        try {
+            List<Message> messages = getUnreadMessages();
 
-        return messages.stream()
-            .map(message -> {
-                try {
-                    return mailParser.parse(message);
-                } catch (MessagingException e) {
-                    throw new RuntimeException(e);
-                }
-            })
-            .toList();
+            return messages.stream()
+                .map(message -> {
+                    try {
+                        return mailParser.parse(message);
+                    } catch (MessagingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+        } catch (MessagingException e) {
+            throw new MailImportException("Failed to fetch unread mails", e);
+        }
+
     }
 
     private Session createSession() {
