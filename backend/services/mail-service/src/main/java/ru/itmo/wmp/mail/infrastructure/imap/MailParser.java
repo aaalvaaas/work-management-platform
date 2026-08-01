@@ -5,13 +5,17 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeUtility;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.domain.MailMessage;
 
 import java.io.UnsupportedEncodingException;
 
 @Component
+@RequiredArgsConstructor
 public class MailParser {
+    private final MailContentExtractor contentExtractor;
+
     public MailMessage parse(Message message) throws MessagingException {
         MailMessage mail = new MailMessage();
 
@@ -56,11 +60,7 @@ public class MailParser {
 
     private String getBody(Message message) throws MessagingException {
         try {
-            Object content = message.getContent();
-
-            if (content instanceof String text) return text;
-
-            return content.toString();
+            return contentExtractor.extractText(message);
         } catch (Exception e) {
             throw new MessagingException("Cannot parse mail body", e);
         }
