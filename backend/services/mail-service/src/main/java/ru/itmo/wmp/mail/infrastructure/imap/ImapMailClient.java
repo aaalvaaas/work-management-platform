@@ -21,7 +21,7 @@ public class ImapMailClient {
     private List<Message> getUnreadMessages() throws MessagingException {
         Store store = connect();
         Folder inbox = store.getFolder("INBOX");
-        inbox.open(Folder.READ_ONLY);
+        inbox.open(Folder.READ_WRITE);
 
         Message[] messages = inbox.search(
             new FlagTerm(
@@ -31,6 +31,17 @@ public class ImapMailClient {
         );
 
         return Arrays.asList(messages);
+    }
+
+    public void markAsRead(Message message) {
+        try {
+            message.setFlag(
+                Flags.Flag.SEEN,
+                true
+            );
+        } catch (MessagingException e) {
+            throw new MailImportException("Failed to mark mail as read", e);
+        }
     }
 
     public List<ParsedMail> fetchUnread() {

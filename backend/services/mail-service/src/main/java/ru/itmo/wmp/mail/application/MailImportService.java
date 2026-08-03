@@ -24,6 +24,7 @@ public class MailImportService {
         mails.forEach(parsedMail -> {
             try {
                 mailService.receiveMail(parsedMail.mailMessage());
+                imapMailClient.markAsRead(parsedMail.sourceMessage());
                 imported.getAndIncrement();
             } catch (DuplicateMailException ignored) {
                 skipped.getAndIncrement();

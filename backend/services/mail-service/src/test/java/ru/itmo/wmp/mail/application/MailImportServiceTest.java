@@ -71,6 +71,12 @@ public class MailImportServiceTest {
 
         verify(mailService)
             .receiveMail(mail2);
+
+        verify(imapMailClient)
+            .markAsRead(sourceMessage1);
+
+        verify(imapMailClient)
+            .markAsRead(sourceMessage2);
     }
 
     @Test
@@ -119,5 +125,12 @@ public class MailImportServiceTest {
 
         verify(mailService)
             .receiveMail(normalMail);
+
+        verify(imapMailClient, never())
+            .markAsRead(sourceMessage1);
+
+        verify(imapMailClient)
+            .markAsRead(sourceMessage2);
+
     }
 }
