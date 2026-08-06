@@ -5,7 +5,6 @@ import jakarta.mail.search.FlagTerm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.config.properties.MailProperties;
-import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.exception.MailImportException;
 
 import java.util.Arrays;

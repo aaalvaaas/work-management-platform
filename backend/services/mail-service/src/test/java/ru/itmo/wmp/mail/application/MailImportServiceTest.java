@@ -1,12 +1,15 @@
 package ru.itmo.wmp.mail.application;
 
 import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
+import ru.itmo.wmp.mail.exception.MailImportException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
 
@@ -29,15 +32,11 @@ public class MailImportServiceTest {
     @Mock
     private Message sourceMessage2;
 
+    @InjectMocks
     private MailImportService mailImportService;
 
     @Test
     void shouldImportUnreadMailsSuccessfully() {
-        mailImportService = new MailImportService(
-            imapMailClient,
-            mailService
-        );
-
         MailMessage mail1 = new MailMessage();
         mail1.setMessageId("test-001");
 
@@ -81,11 +80,6 @@ public class MailImportServiceTest {
 
     @Test
     void shouldSkipDuplicateMails() {
-        mailImportService = new MailImportService(
-            imapMailClient,
-            mailService
-        );
-
         MailMessage duplicateMail = new MailMessage();
         duplicateMail.setMessageId("test-001");
 
@@ -131,6 +125,42 @@ public class MailImportServiceTest {
 
         verify(imapMailClient)
             .markAsRead(sourceMessage2);
+    }
 
+    @Test
+    void shouldReturnEmptyResultWhenNoUnreadMails() {
+        when(imapMailClient.fetchUnread())
+            .thenReturn(List.of());
+
+        MailImportResult result = mailImportService.importUnreadMails();
+
+        assertEquals(0, result.imported());
+        assertEquals(0, result.skipped());
+
+        verify(imapMailClient)
+            .fetchUnread();
+
+        verify(mailService, never())
+            .receiveMail(any());
+
+        verify(imapMailClient, never())
+            .markAsRead(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenImapFails() {
+        when(imapMailClient.fetchUnread())
+            .thenThrow(new MailImportException("IMAP failed", new MessagingException()));
+
+        assertThrows(
+            MailImportException.class,
+            () -> mailImportService.importUnreadMails()
+        );
+
+        verify(mailService, never())
+            .receiveMail(any());
+
+        verify(imapMailClient, never())
+            .markAsRead(any());
     }
 }
