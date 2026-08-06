@@ -1,0 +1,37 @@
+services:
+    postgres:
+        image: postgres:17
+
+        container_name: wmp-postgres
+
+        restart: unless-stopped
+
+        env_file:
+            -   .env
+
+        ports:
+            -   "15432:5432"
+
+        volumes:
+            -   postgres-data:/var/lib/postgresql/data
+            -   ../docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
+        networks:
+            -   wmp-network
+
+volumes:
+
+    postgres-data:
+
+
+networks:
+
+    wmp-network:
+        driver: bridge

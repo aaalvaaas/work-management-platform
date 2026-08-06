@@ -1,0 +1,9 @@
+spring:
+    datasource:
+        url: jdbc:postgresql://localhost:15432/platform_db
+        username: wmp
+        password: wmp
+
+logging:
+    level:
+        root: INFO
