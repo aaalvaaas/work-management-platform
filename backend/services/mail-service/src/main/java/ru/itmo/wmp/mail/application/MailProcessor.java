@@ -10,8 +10,15 @@ public class MailProcessor {
     private final MailService mailService;
 
     public void process(MailMessage mail) {
-        mailService.markAsProcessing(mail.getMessageId());
+        String messageId = mail.getMessageId();
 
-        mailService.markAsProcessed(mail.getMessageId());
+        mailService.markAsProcessing(messageId);
+
+        try {
+            mailService.markAsProcessed(messageId);
+        } catch (Exception e) {
+            mailService.markAsFailed(messageId);
+            throw e;
+        }
     }
 }
