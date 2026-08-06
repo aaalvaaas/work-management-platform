@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:8080/api/v1
+
+###
+### Receive mail
+###
+POST {{baseUrl}}/mails
+Content-Type: application/json
+
+{
+    "messageId": "mail-001",
+    "senderEmail": "sendertest.com",
+    "recipientEmail": "recipienttest.com",
+    "subject": "Hello",
+    "plainTextBody": "This is a test email."
+}
+
+###
+### Get all mails
+###
+GET {{baseUrl}}/mails
+Accept: application/json
+
+###
+### Get mail by messageId
+###
+GET {{baseUrl}}/mails/mail-001
+Accept: application/json
+
+###
+### Move to processing
+###
+PATCH {{baseUrl}}/mails/mail-001/processing
+
+
+###
+### Move to processed
+###
+PATCH {{baseUrl}}/mails/mail-001/processed
+
+
+###
+### Move to failed
+###
+PATCH {{baseUrl}}/mails/mail-001/failed

@@ -1,0 +1,16 @@
+spring:
+    application:
+        name: mail-service
+
+    profiles:
+        active: dev
+
+server:
+    port: 8080
+
+mail:
+    import:
+        fixed-delay: 30000
+
+app:
+    version: 0.1.0
