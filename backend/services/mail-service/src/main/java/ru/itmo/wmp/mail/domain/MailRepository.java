@@ -11,4 +11,6 @@ public interface MailRepository {
     boolean existsByMessageId(String messageId);
 
     List<MailMessage> findAll();
+
+    void deleteAll();
 }

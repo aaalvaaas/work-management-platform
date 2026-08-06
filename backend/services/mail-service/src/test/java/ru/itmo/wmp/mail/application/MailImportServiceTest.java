@@ -32,6 +32,9 @@ public class MailImportServiceTest {
     @Mock
     private Message sourceMessage2;
 
+    @Mock
+    private MailProcessor mailProcessor;
+
     @InjectMocks
     private MailImportService mailImportService;
 
@@ -59,6 +62,12 @@ public class MailImportServiceTest {
                 parsedMail2
             ));
 
+        when(mailService.receiveMail(mail1))
+            .thenReturn(mail1);
+
+        when(mailService.receiveMail(mail2))
+            .thenReturn(mail2);
+
         MailImportResult result =
             mailImportService.importUnreadMails();
 
@@ -76,6 +85,12 @@ public class MailImportServiceTest {
 
         verify(imapMailClient)
             .markAsRead(sourceMessage2);
+
+        verify(mailProcessor)
+            .process(mail1);
+
+        verify(mailProcessor)
+            .process(mail2);
     }
 
     @Test

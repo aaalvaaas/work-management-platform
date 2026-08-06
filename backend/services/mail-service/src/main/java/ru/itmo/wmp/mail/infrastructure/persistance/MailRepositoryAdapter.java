@@ -32,4 +32,9 @@ public class MailRepositoryAdapter implements MailRepository {
     public List<MailMessage> findAll() {
         return repository.findAll();
     }
+
+    @Override
+    public void deleteAll() {
+        repository.deleteAll();
+    }
 }
