@@ -26,9 +26,32 @@ services:
         networks:
             -   wmp-network
 
-volumes:
+    minio:
+        image: minio/minio:RELEASE.2025-07-23T15-54-02Z
 
+        container_name: wmp-minio
+
+        restart: unless-stopped
+
+        env_file:
+            -   .env
+
+        command: server /data --console-address ":9001"
+
+        ports:
+            -   "9000:9000"
+            -   "9001:9001"
+
+        volumes:
+            -   minio-data:/data
+
+        networks:
+            -   wmp-network
+
+volumes:
     postgres-data:
+
+    minio-data:
 
 
 networks:
