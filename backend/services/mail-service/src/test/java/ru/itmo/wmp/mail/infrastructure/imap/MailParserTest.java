@@ -1,4 +1,4 @@
-package ru.itmo.wmp.mail.imap;
+package ru.itmo.wmp.mail.infrastructure.imap;
 
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -10,8 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.itmo.wmp.mail.domain.MailMessage;
-import ru.itmo.wmp.mail.infrastructure.imap.MailContentExtractor;
-import ru.itmo.wmp.mail.infrastructure.imap.MailParser;
 
 import java.io.IOException;
 import java.util.Properties;
