@@ -10,13 +10,14 @@ import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.domain.MailMessage;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class MailParser {
     private final MailContentExtractor contentExtractor;
 
-    public MailMessage parse(Message message) throws MessagingException {
+    public ParsedMail parse(Message message) throws MessagingException {
         MailMessage mail = new MailMessage();
 
         mail.setMessageId(getMessageId(message));
@@ -25,7 +26,11 @@ public class MailParser {
         mail.setSubject(getSubject(message));
         mail.setPlainTextBody(getBody(message));
 
-        return mail;
+        return new ParsedMail(
+            message,
+            mail,
+            List.of()
+        );
     }
 
     private String getMessageId(Message message) throws MessagingException {

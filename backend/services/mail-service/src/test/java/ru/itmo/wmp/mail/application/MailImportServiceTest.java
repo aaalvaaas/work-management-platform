@@ -48,12 +48,14 @@ public class MailImportServiceTest {
 
         ParsedMail parsedMail1 = new ParsedMail(
             sourceMessage1,
-            mail1
+            mail1,
+            List.of()
         );
 
         ParsedMail parsedMail2 = new ParsedMail(
             sourceMessage2,
-            mail2
+            mail2,
+            List.of()
         );
 
         when(imapMailClient.fetchUnread())
@@ -104,13 +106,15 @@ public class MailImportServiceTest {
         ParsedMail duplicateParsed =
             new ParsedMail(
                 sourceMessage1,
-                duplicateMail
+                duplicateMail,
+                List.of()
             );
 
         ParsedMail normalParsed =
             new ParsedMail(
                 sourceMessage2,
-                normalMail
+                normalMail,
+                List.of()
             );
 
         when(imapMailClient.fetchUnread())

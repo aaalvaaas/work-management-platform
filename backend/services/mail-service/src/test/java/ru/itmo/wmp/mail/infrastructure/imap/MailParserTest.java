@@ -32,7 +32,7 @@ public class MailParserTest {
         when(contentExtractor.extractText(message))
             .thenReturn("Test Body");
 
-        MailMessage result = mailParser.parse(message);
+        MailMessage result = mailParser.parse(message).mailMessage();
 
         assertEquals("<test-001>@test.ru", result.getMessageId());
         assertEquals("sender@test.ru", result.getSenderEmail());
@@ -71,7 +71,7 @@ public class MailParserTest {
         when(contentExtractor.extractText(message))
             .thenReturn("Test Body");
 
-        MailMessage result = mailParser.parse(message);
+        MailMessage result = mailParser.parse(message).mailMessage();
 
         assertEquals("Привет", result.getSubject());
 

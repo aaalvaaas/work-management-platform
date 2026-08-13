@@ -50,9 +50,9 @@ public class ImapMailClient {
             return messages.stream()
                 .map(message -> {
                     try {
-                        return new ParsedMail(message, mailParser.parse(message));
+                        return mailParser.parse(message);
                     } catch (MessagingException e) {
-                        throw new RuntimeException(e);
+                        throw new MailImportException("Failed to parse mail", e);
                     }
                 })
                 .toList();
