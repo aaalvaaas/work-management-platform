@@ -20,7 +20,7 @@ public class MailAttachmentExtractor {
         return attachments;
     }
 
-    public void extractAttachments(Part part, List<ParsedAttachment> attachments) throws MessagingException, IOException {
+    private void extractAttachments(Part part, List<ParsedAttachment> attachments) throws MessagingException, IOException {
         if (!part.isMimeType("multipart/*")) return;
 
         Multipart multipart = (Multipart) part.getContent();
