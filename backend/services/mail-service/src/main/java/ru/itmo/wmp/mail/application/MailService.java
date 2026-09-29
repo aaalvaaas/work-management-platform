@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.domain.MailProcessingStatus;
-import ru.itmo.wmp.mail.domain.MailRepository;
+import ru.itmo.wmp.mail.application.repository.MailRepository;
 import ru.itmo.wmp.mail.domain.MailStatusTransition;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.exception.InvalidMailStatusTransitionException;

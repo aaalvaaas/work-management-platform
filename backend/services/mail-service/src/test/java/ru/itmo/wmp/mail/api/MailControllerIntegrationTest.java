@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import ru.itmo.wmp.mail.domain.MailRepository;
+import ru.itmo.wmp.mail.application.repository.MailRepository;
 import ru.itmo.wmp.mail.dto.request.MailRequest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;

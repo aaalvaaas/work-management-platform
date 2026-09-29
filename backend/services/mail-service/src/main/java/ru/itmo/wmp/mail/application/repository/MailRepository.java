@@ -1,4 +1,6 @@
-package ru.itmo.wmp.mail.domain;
+package ru.itmo.wmp.mail.application.repository;
+
+import ru.itmo.wmp.mail.domain.MailMessage;
 
 import java.util.List;
 import java.util.Optional;
