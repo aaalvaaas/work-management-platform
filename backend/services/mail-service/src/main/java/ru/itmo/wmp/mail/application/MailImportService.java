@@ -18,6 +18,7 @@ public class MailImportService {
     private final ImapMailClient imapMailClient;
     private final MailService mailService;
     private final MailProcessor mailProcessor;
+    private final MailAttachmentService mailAttachmentService;
 
     public MailImportResult importUnreadMails() {
         List<ParsedMail> mails = imapMailClient.fetchUnread();
@@ -28,6 +29,9 @@ public class MailImportService {
         mails.forEach(parsedMail -> {
             try {
                 MailMessage savedMail = mailService.receiveMail(parsedMail.mailMessage());
+
+                parsedMail.attachments().forEach(attachment -> mailAttachmentService.save(savedMail, attachment));
+
                 mailProcessor.process(savedMail);
                 imapMailClient.markAsRead(parsedMail.sourceMessage());
 
