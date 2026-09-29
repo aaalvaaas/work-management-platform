@@ -29,4 +29,4 @@ public class MailAttachment {
 
     @Column(nullable = false)
     private String storageKey;
-}uj
+}
