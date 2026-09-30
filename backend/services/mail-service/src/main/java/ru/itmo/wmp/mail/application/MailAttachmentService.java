@@ -8,6 +8,8 @@ import ru.itmo.wmp.mail.domain.MailAttachment;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedAttachment;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MailAttachmentService {
@@ -36,5 +38,9 @@ public class MailAttachmentService {
             storageService.delete(storageKey);
             throw e;
         }
+    }
+
+    public List<MailAttachment> findAllByMailMessageId(Long mailMessageId) {
+        return mailAttachmentRepository.findAllByMailMessageId(mailMessageId);
     }
 }

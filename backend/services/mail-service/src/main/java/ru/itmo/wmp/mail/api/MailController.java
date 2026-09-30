@@ -3,10 +3,13 @@ package ru.itmo.wmp.mail.api;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.itmo.wmp.mail.api.mapper.MailAttachmentMapper;
 import ru.itmo.wmp.mail.api.mapper.MailMapper;
+import ru.itmo.wmp.mail.application.MailAttachmentService;
 import ru.itmo.wmp.mail.application.MailService;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.dto.request.MailRequest;
+import ru.itmo.wmp.mail.dto.response.MailAttachmentResponse;
 import ru.itmo.wmp.mail.dto.response.MailResponse;
 
 import java.util.List;
@@ -16,7 +19,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MailController {
     private final MailService mailService;
+    private final MailAttachmentService mailAttachmentService;
     private final MailMapper mailMapper;
+    private final MailAttachmentMapper mailAttachmentMapper;
 
     @PostMapping
     public MailResponse receiveMail(
@@ -43,6 +48,19 @@ public class MailController {
         MailMessage mail = mailService.getMail(messageId);
 
         return mailMapper.toResponse(mail);
+    }
+
+    @GetMapping("/{messageId}/attachments")
+    public List<MailAttachmentResponse> getMailAttachments(
+        @PathVariable String messageId
+    ) {
+        MailMessage mail = mailService.getMail(messageId);
+
+        return mailAttachmentService
+            .findAllByMailMessageId(mail.getId())
+            .stream()
+            .map(mailAttachmentMapper::toResponse)
+            .toList();
     }
 
     @PatchMapping("/{messageId}/processing")
