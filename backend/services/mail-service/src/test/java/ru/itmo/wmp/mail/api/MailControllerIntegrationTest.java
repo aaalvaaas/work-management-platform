@@ -9,8 +9,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.mail.application.repository.MailAttachmentRepository;
 import ru.itmo.wmp.mail.application.repository.MailRepository;
+import ru.itmo.wmp.mail.domain.MailAttachment;
+import ru.itmo.wmp.mail.domain.MailMessage;
+import ru.itmo.wmp.mail.domain.MailProcessingStatus;
 import ru.itmo.wmp.mail.dto.request.MailRequest;
+
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -27,6 +33,9 @@ public class MailControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private MailAttachmentRepository mailAttachmentRepository;
 
     @BeforeEach
     void cleanDatabase() {
@@ -53,6 +62,90 @@ public class MailControllerIntegrationTest {
             .andExpect(jsonPath("$.senderEmail").value("sender@test.ru"))
             .andExpect(jsonPath("$.recipientEmail").value("recipient@test.ru"))
             .andExpect(jsonPath("$.processingStatus").value("RECEIVED"));
+    }
+
+    @Test
+    void shouldGetMailAttachments() throws Exception {
+        MailMessage mail = new MailMessage();
+
+        mail.setMessageId("mail-with-attachments");
+        mail.setSenderEmail("sender@test.ru");
+        mail.setRecipientEmail("recipient@test.ru");
+        mail.setSubject("Mail with attachments");
+        mail.setPlainTextBody("Test body");
+        mail.setReceivedAt(LocalDateTime.now());
+        mail.setProcessingStatus(MailProcessingStatus.RECEIVED);
+
+        MailMessage savedMail = mailRepository.save(mail);
+
+        MailAttachment attachment1 = new MailAttachment();
+
+        attachment1.setMailMessage(savedMail);
+        attachment1.setFilename("document.pdf");
+        attachment1.setContentType("application/pdf");
+        attachment1.setSize(1024L);
+        attachment1.setStorageKey("mail/1/document.pdf");
+
+        MailAttachment attachment2 = new MailAttachment();
+
+        attachment2.setMailMessage(savedMail);
+        attachment2.setFilename("image.png");
+        attachment2.setContentType("image/png");
+        attachment2.setSize(2048L);
+        attachment2.setStorageKey("mail/1/image.png");
+
+        mailAttachmentRepository.save(attachment1);
+        mailAttachmentRepository.save(attachment2);
+
+        mockMvc.perform(
+            get(
+                "/api/v1/mails/{messageId}/attachments",
+                savedMail.getMessageId()
+            )
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].filename").value("document.pdf"))
+            .andExpect(jsonPath("$[0].contentType").value("application/pdf"))
+            .andExpect(jsonPath("$[0].size").value(1024L))
+            .andExpect(jsonPath("$[1].filename").value("image.png"))
+            .andExpect(jsonPath("$[1].contentType").value("image/png"))
+            .andExpect(jsonPath("$[1].size").value(2048L));
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenMailHasNoAttachments() throws Exception {
+        MailMessage mail = new MailMessage();
+
+        mail.setMessageId("mail-without-attachments");
+        mail.setSenderEmail("sender@test.ru");
+        mail.setRecipientEmail("recipient@test.ru");
+        mail.setSubject("Mail without attachments");
+        mail.setPlainTextBody("Test body");
+        mail.setReceivedAt(LocalDateTime.now());
+        mail.setProcessingStatus(MailProcessingStatus.RECEIVED);
+
+        mailRepository.save(mail);
+
+        mockMvc.perform(
+            get(
+                "/api/v1/mails/{messageId}/attachments",
+                mail.getMessageId()
+            )
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenMailDoesNotExit() throws Exception {
+        mockMvc.perform(
+            get(
+                "/api/v1/mails/{messageId}/attachments",
+                "unknown-message-id"
+            )
+        )
+            .andExpect(status().isNotFound());
     }
 
     @Test
