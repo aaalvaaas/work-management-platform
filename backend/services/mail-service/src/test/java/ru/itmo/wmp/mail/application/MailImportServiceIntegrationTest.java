@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import ru.itmo.wmp.mail.application.mail.MailImportResult;
+import ru.itmo.wmp.mail.application.mail.MailImportService;
 import ru.itmo.wmp.mail.application.repository.MailAttachmentRepository;
 import ru.itmo.wmp.mail.application.repository.MailRepository;
 import ru.itmo.wmp.mail.application.storage.StorageService;

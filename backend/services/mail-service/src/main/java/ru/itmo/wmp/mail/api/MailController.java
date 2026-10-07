@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.mail.api.mapper.MailAttachmentMapper;
 import ru.itmo.wmp.mail.api.mapper.MailMapper;
-import ru.itmo.wmp.mail.application.MailAttachmentService;
+import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.application.MailService;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.dto.request.MailRequest;

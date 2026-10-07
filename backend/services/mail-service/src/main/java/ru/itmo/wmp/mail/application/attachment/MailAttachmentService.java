@@ -1,4 +1,4 @@
-package ru.itmo.wmp.mail.application;
+package ru.itmo.wmp.mail.application.attachment;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

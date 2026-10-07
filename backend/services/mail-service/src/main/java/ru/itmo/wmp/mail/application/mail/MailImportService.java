@@ -1,8 +1,11 @@
-package ru.itmo.wmp.mail.application;
+package ru.itmo.wmp.mail.application.mail;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.itmo.wmp.mail.application.MailProcessor;
+import ru.itmo.wmp.mail.application.MailService;
+import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;

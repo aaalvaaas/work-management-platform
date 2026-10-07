@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.application.repository.MailAttachmentRepository;
 import ru.itmo.wmp.mail.application.storage.StorageService;
 import ru.itmo.wmp.mail.domain.MailAttachment;
