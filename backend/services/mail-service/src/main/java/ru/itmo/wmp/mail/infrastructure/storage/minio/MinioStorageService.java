@@ -1,5 +1,6 @@
 package ru.itmo.wmp.mail.infrastructure.storage.minio;
 
+import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
@@ -39,6 +40,20 @@ public class MinioStorageService implements StorageService {
             return storageKey;
         } catch (Exception e) {
             throw new StorageException("Failed to upload file: " + filename, e);
+        }
+    }
+
+    @Override
+    public InputStream download(String storageKey) {
+        try {
+            return minioClient.getObject(
+                GetObjectArgs.builder()
+                    .bucket(properties.bucket())
+                    .object(storageKey)
+                    .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to download file: " + storageKey, e);
         }
     }
 

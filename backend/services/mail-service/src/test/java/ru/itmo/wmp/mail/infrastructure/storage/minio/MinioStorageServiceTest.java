@@ -1,8 +1,6 @@
 package ru.itmo.wmp.mail.infrastructure.storage.minio;
 
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
+import io.minio.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -14,6 +12,7 @@ import ru.itmo.wmp.mail.exception.StorageException;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -137,5 +136,61 @@ public class MinioStorageServiceTest {
             RuntimeException.class,
             exception.getCause()
         );
+    }
+
+    @Test
+    void shouldDownloadFileSuccessfully() throws Exception {
+        String bucket = "test-bucket";
+        String storageKey = "test-key";
+        String content = "test file content";
+
+        when(properties.bucket())
+            .thenReturn(bucket);
+
+        GetObjectResponse response = mock(GetObjectResponse.class);
+
+        when(response.readAllBytes())
+            .thenReturn(content.getBytes(StandardCharsets.UTF_8));
+
+        when(minioClient.getObject(any(GetObjectArgs.class)))
+            .thenReturn(response);
+
+        InputStream inputStream = minioStorageService.download(storageKey);
+
+        String downloadedContent = new String(
+            inputStream.readAllBytes(),
+            StandardCharsets.UTF_8
+        );
+
+        assertEquals(content, downloadedContent);
+
+        ArgumentCaptor<GetObjectArgs> captor = ArgumentCaptor.forClass(GetObjectArgs.class);
+
+        verify(minioClient)
+            .getObject(captor.capture());
+
+        GetObjectArgs args = captor.getValue();
+
+        assertEquals(bucket, args.bucket());
+        assertEquals(storageKey, args.object());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenObjectDoesNotExist() throws Exception {
+        String bucket = "test-bucket";
+        String storageKey = "unknown-object";
+
+        when(properties.bucket())
+            .thenReturn(bucket);
+
+        when(minioClient.getObject(any(GetObjectArgs.class)))
+            .thenThrow(new RuntimeException("MinIO unavailable"));
+
+        StorageException exception = assertThrows(
+            StorageException.class,
+            () -> minioStorageService.download(storageKey)
+        );
+
+        assertTrue(exception.getMessage().contains("Failed to download file"));
     }
 }
