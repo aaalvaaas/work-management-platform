@@ -2,12 +2,15 @@ package ru.itmo.wmp.mail.application.attachment;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.mail.application.repository.MailAttachmentRepository;
 import ru.itmo.wmp.mail.application.storage.StorageService;
 import ru.itmo.wmp.mail.domain.MailAttachment;
 import ru.itmo.wmp.mail.domain.MailMessage;
+import ru.itmo.wmp.mail.exception.MailAttachmentNotFoundException;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedAttachment;
 
+import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -42,5 +45,25 @@ public class MailAttachmentService {
 
     public List<MailAttachment> findAllByMailMessageId(Long mailMessageId) {
         return mailAttachmentRepository.findAllByMailMessageId(mailMessageId);
+    }
+
+    @Transactional(readOnly = true)
+    public MailAttachmentDownload download(Long mailMessageId, Long attachmentId) {
+        MailAttachment attachment = mailAttachmentRepository
+            .findById(attachmentId)
+            .orElseThrow(() -> new MailAttachmentNotFoundException(attachmentId));
+
+        if (!attachment.getMailMessage().getId().equals(mailMessageId)) {
+            throw new MailAttachmentNotFoundException(attachmentId);
+        }
+
+        InputStream inputStream = storageService.download(attachment.getStorageKey());
+
+        return new MailAttachmentDownload(
+            attachment.getFilename(),
+            attachment.getContentType(),
+            attachment.getSize(),
+            inputStream
+        );
     }
 }
