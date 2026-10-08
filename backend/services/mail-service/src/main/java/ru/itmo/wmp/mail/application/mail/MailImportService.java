@@ -1,8 +1,12 @@
-package ru.itmo.wmp.mail.application;
+package ru.itmo.wmp.mail.application.mail;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.itmo.wmp.mail.application.MailProcessor;
+import ru.itmo.wmp.mail.application.MailService;
+import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
+import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
@@ -16,6 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MailImportService {
     private final ImapMailClient imapMailClient;
     private final MailService mailService;
+    private final MailProcessor mailProcessor;
+    private final MailAttachmentService mailAttachmentService;
 
     public MailImportResult importUnreadMails() {
         List<ParsedMail> mails = imapMailClient.fetchUnread();
@@ -25,7 +31,11 @@ public class MailImportService {
 
         mails.forEach(parsedMail -> {
             try {
-                mailService.receiveMail(parsedMail.mailMessage());
+                MailMessage savedMail = mailService.receiveMail(parsedMail.mailMessage());
+
+                parsedMail.attachments().forEach(attachment -> mailAttachmentService.save(savedMail, attachment));
+
+                mailProcessor.process(savedMail);
                 imapMailClient.markAsRead(parsedMail.sourceMessage());
 
                 log.info(

@@ -3,7 +3,7 @@ package ru.itmo.wmp.mail.infrastructure.persistance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.itmo.wmp.mail.domain.MailMessage;
-import ru.itmo.wmp.mail.domain.MailRepository;
+import ru.itmo.wmp.mail.application.repository.MailRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,5 +31,10 @@ public class MailRepositoryAdapter implements MailRepository {
     @Override
     public List<MailMessage> findAll() {
         return repository.findAll();
+    }
+
+    @Override
+    public void deleteAll() {
+        repository.deleteAll();
     }
 }

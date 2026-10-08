@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.config.properties.MailProperties;
 import ru.itmo.wmp.mail.exception.MailImportException;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -50,9 +51,9 @@ public class ImapMailClient {
             return messages.stream()
                 .map(message -> {
                     try {
-                        return new ParsedMail(message, mailParser.parse(message));
-                    } catch (MessagingException e) {
-                        throw new RuntimeException(e);
+                        return mailParser.parse(message);
+                    } catch (MessagingException | IOException e) {
+                        throw new MailImportException("Failed to parse mail", e);
                     }
                 })
                 .toList();

@@ -1,4 +1,4 @@
-package ru.itmo.wmp.mail.application;
+package ru.itmo.wmp.mail.application.mail;
 
 public record MailImportResult(
     int imported,

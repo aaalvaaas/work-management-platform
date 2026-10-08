@@ -8,8 +8,8 @@ Content-Type: application/json
 
 {
     "messageId": "mail-001",
-    "senderEmail": "sendertest.com",
-    "recipientEmail": "recipienttest.com",
+    "senderEmail": "sender@test.com",
+    "recipientEmail": "recipient@test.com",
     "subject": "Hello",
     "plainTextBody": "This is a test email."
 }
@@ -24,6 +24,12 @@ Accept: application/json
 ### Get mail by messageId
 ###
 GET {{baseUrl}}/mails/mail-001
+Accept: application/json
+
+###
+### Get mail attachments
+###
+GET {{baseUrl}}/mails/mail-001/attachments
 Accept: application/json
 
 ###
@@ -42,3 +48,15 @@ PATCH {{baseUrl}}/mails/mail-001/processed
 ### Move to failed
 ###
 PATCH {{baseUrl}}/mails/mail-001/failed
+
+###
+### Get attachments for non-existing mail
+###
+GET {{baseUrl}}/mails/unknown-mail/attachments
+Accept: application/json
+
+###
+### Get non-existing attachment
+###
+GET {{baseUrl}}/mails/mail-001/attachments/999999
+Accept: application/json
