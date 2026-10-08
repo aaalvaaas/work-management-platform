@@ -59,6 +59,25 @@ public class GlobalExceptionHandler {
             .body(response);
     }
 
+    @ExceptionHandler(MailAttachmentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMailAttachmentNotFound(
+        MailAttachmentNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        ErrorResponse response = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.NOT_FOUND.value(),
+            ErrorCode.MAIL_ATTACHMENT_NOT_FOUND.name(),
+            ex.getMessage(),
+            request.getRequestURI(),
+            Map.of()
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(response);
+    }
+
     @ExceptionHandler(DuplicateMailException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateMail(
         DuplicateMailException ex,

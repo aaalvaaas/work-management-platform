@@ -48,3 +48,15 @@ PATCH {{baseUrl}}/mails/mail-001/processed
 ### Move to failed
 ###
 PATCH {{baseUrl}}/mails/mail-001/failed
+
+###
+### Get attachments for non-existing mail
+###
+GET {{baseUrl}}/mails/unknown-mail/attachments
+Accept: application/json
+
+###
+### Get non-existing attachment
+###
+GET {{baseUrl}}/mails/mail-001/attachments/999999
+Accept: application/json
