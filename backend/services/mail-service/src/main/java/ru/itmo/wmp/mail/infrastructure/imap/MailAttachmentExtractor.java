@@ -4,8 +4,10 @@ import jakarta.mail.BodyPart;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
+import jakarta.mail.internet.MimeUtility;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,18 +40,31 @@ public class MailAttachmentExtractor {
     }
 
     private boolean isAttachment(Part part) throws MessagingException {
-        return Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition());
+        String disposition = part.getDisposition();
+        String filename = part.getFileName();
+
+        return Part.ATTACHMENT.equalsIgnoreCase(disposition) || filename != null;
     }
 
     private ParsedAttachment createAttachment(Part part) throws MessagingException, IOException {
-        String filename = part.getFileName();
+        String filename = MimeUtility.decodeText(part.getFileName());
         String contentType = part.getContentType();
+
+        int separator = contentType.indexOf(';');
+
+        if (separator >= 0) {
+            contentType = contentType.substring(0, separator);
+        }
+
+        contentType = contentType.trim();
+
+        byte[] content = part.getInputStream().readAllBytes();
 
         return new ParsedAttachment(
             filename,
             contentType,
-            part.getSize(),
-            part.getInputStream()
+            content.length,
+            new ByteArrayInputStream(content)
         );
     }
 }

@@ -10,6 +10,7 @@ import ru.itmo.wmp.mail.application.storage.StorageService;
 import ru.itmo.wmp.mail.config.properties.MinioProperties;
 import ru.itmo.wmp.mail.exception.StorageException;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.UUID;
 
@@ -24,14 +25,19 @@ public class MinioStorageService implements StorageService {
         String storageKey = generateStorageKey(filename);
 
         try {
+            byte[] content = inputStream.readAllBytes();
+
+            ByteArrayInputStream uploadStream =
+                new ByteArrayInputStream(content);
+
             minioClient.putObject(
                 PutObjectArgs.builder()
                     .bucket(properties.bucket())
                     .object(storageKey)
                     .stream(
-                        inputStream,
-                        size,
-                        -1
+                        uploadStream,
+                        content.length,
+                        10 * 1024 * 1024
                     )
                     .contentType(contentType)
                     .build()

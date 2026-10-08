@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.domain.MailMessage;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
@@ -16,8 +17,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MailParser {
     private final MailContentExtractor contentExtractor;
+    private final MailAttachmentExtractor attachmentExtractor;
 
-    public ParsedMail parse(Message message) throws MessagingException {
+    public ParsedMail parse(Message message) throws MessagingException, IOException {
         MailMessage mail = new MailMessage();
 
         mail.setMessageId(getMessageId(message));
@@ -26,10 +28,12 @@ public class MailParser {
         mail.setSubject(getSubject(message));
         mail.setPlainTextBody(getBody(message));
 
+        List<ParsedAttachment> attachments = attachmentExtractor.extract(message);
+
         return new ParsedMail(
             message,
             mail,
-            List.of()
+            attachments
         );
     }
 
