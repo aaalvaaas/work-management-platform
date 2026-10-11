@@ -48,10 +48,46 @@ services:
         networks:
             -   wmp-network
 
+    nextcloud:
+        image: nextcloud:apache
+
+        container_name: wmp-nextcloud
+
+        restart: unless-stopped
+
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+        env_file:
+            -   .env
+
+        environment:
+            POSTGRES_HOST: postgres
+            POSTGRES_DB: ${NEXTCLOUD_DB_NAME}
+            POSTGRES_USER: ${NEXTCLOUD_DB_USER}
+            POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+            NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+            NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+
+        ports:
+            -   "8081:80"
+
+        volumes:
+            - nextcloud-data:/var/www/html
+            - ../docker/nextcloud/zz-disable-jit.ini:/usr/local/etc/php/conf.d/zz-disable-jit.ini:ro
+
+        networks:
+            -   wmp-network
+
+
+
 volumes:
     postgres-data:
 
     minio-data:
+
+    nextcloud-data:
 
 
 networks:
