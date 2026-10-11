@@ -74,7 +74,8 @@ services:
             -   "8081:80"
 
         volumes:
-            -   nextcloud-data:/var/www/html
+            - nextcloud-data:/var/www/html
+            - ../docker/nextcloud/zz-disable-jit.ini:/usr/local/etc/php/conf.d/zz-disable-jit.ini:ro
 
         networks:
             -   wmp-network
