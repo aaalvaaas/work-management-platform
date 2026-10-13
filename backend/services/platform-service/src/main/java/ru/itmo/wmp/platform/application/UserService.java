@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.itmo.wmp.platform.domain.User;
 import ru.itmo.wmp.platform.exception.UserNotFoundException;
-import ru.itmo.wmp.platform.infrastructure.persistance.UserRepository;
+import ru.itmo.wmp.platform.application.repository.UserRepository;
 
 import java.util.List;
 

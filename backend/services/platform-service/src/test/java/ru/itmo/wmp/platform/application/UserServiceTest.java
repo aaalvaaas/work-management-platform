@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.itmo.wmp.platform.domain.User;
 import ru.itmo.wmp.platform.exception.UserNotFoundException;
-import ru.itmo.wmp.platform.infrastructure.persistance.UserRepository;
+import ru.itmo.wmp.platform.application.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
