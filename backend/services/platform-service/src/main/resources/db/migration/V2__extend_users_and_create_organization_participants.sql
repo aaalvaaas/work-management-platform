@@ -14,7 +14,6 @@ create table organizations
 (
     id bigserial primary key,
     name varchar(255) not null,
-    status varchar(20) not null default 'ACTIVE',
     created_at timestamp not null default current_timestamp,
 
     constraint chk_organizations_status check (status in ('ACTIVE', 'INACTIVE'))
