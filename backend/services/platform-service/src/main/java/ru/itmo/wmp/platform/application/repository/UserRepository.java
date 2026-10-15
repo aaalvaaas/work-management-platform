@@ -5,10 +5,6 @@ import ru.itmo.wmp.platform.domain.User;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Аккаунты платформы не удаляются: исключение из организации и блокировка
- * аккаунта меняют статусы, но запись пользователя сохраняется.
- */
 public interface UserRepository {
     List<User> findAll();
 

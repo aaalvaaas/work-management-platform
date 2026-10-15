@@ -50,11 +50,6 @@ public class UserService {
         return roles;
     }
 
-    /**
-     * Обновляет только те поля, которые пользователь может менять сам.
-     * ФИО, email и номер ИСУ приходят из списка участников организации
-     * и здесь не меняются.
-     */
     @Transactional
     public User updateProfile(Long id, String patronymic, String position) {
         User user = getById(id);
