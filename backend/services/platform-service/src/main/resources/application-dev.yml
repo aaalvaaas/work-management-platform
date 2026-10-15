@@ -7,3 +7,14 @@ spring:
 logging:
     level:
         root: INFO
+
+jwt:
+    secret: ${JWT_SECRET:local-development-secret-change-me-please}
+
+bootstrap:
+    admin:
+        isu-number: ${PLATFORM_ADMIN_ISU:100001}
+        email: ${PLATFORM_ADMIN_EMAIL:admin@niuitmo.ru}
+        last-name: ${PLATFORM_ADMIN_LAST_NAME:Администратор}
+        first-name: ${PLATFORM_ADMIN_FIRST_NAME:Платформы}
+        password: ${PLATFORM_ADMIN_PASSWORD:local-admin-password}
