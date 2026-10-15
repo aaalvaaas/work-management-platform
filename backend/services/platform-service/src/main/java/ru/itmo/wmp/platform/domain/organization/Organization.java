@@ -20,4 +20,9 @@ public class Organization {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

@@ -11,6 +11,10 @@ import ru.itmo.wmp.platform.dto.common.ErrorResponse;
 import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
+import ru.itmo.wmp.platform.exception.registration.AlreadyRegisteredException;
+import ru.itmo.wmp.platform.exception.registration.EmailAlreadyUsedException;
+import ru.itmo.wmp.platform.exception.registration.InvitationNotValidException;
+import ru.itmo.wmp.platform.exception.registration.RegistrationNotAllowedException;
 import ru.itmo.wmp.platform.exception.user.UserNotFoundException;
 
 import java.time.LocalDateTime;
@@ -90,6 +94,62 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.FORBIDDEN,
             ErrorCode.ACCOUNT_BLOCKED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(RegistrationNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationNotAllowed(
+        RegistrationNotAllowedException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.FORBIDDEN,
+            ErrorCode.REGISTRATION_NOT_ALLOWED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(AlreadyRegisteredException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyRegistered(
+        AlreadyRegisteredException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.ALREADY_REGISTERED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(EmailAlreadyUsedException.class)
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyUsed(
+        EmailAlreadyUsedException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.EMAIL_ALREADY_USED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(InvitationNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleInvitationNotValid(
+        InvitationNotValidException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.INVALID_INVITATION,
             ex.getMessage(),
             request,
             Map.of()

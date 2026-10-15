@@ -6,6 +6,9 @@ import ru.itmo.wmp.platform.domain.user.User;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Entity
 @Table(
@@ -70,5 +73,12 @@ public class OrganizationParticipant {
     @PreUpdate
     void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public String fullName() {
+        return Stream.of(lastName, firstName, patronymic)
+            .filter(Objects::nonNull)
+            .filter(part -> !part.isBlank())
+            .collect(Collectors.joining(" "));
     }
 }
