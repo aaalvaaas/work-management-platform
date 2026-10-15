@@ -11,6 +11,7 @@ import ru.itmo.wmp.platform.dto.common.ErrorResponse;
 import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
+import ru.itmo.wmp.platform.exception.organization.ParticipantNotFoundException;
 import ru.itmo.wmp.platform.exception.registration.AlreadyRegisteredException;
 import ru.itmo.wmp.platform.exception.registration.EmailAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.registration.InvitationNotValidException;
@@ -94,6 +95,20 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.FORBIDDEN,
             ErrorCode.ACCOUNT_BLOCKED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(ParticipantNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleParticipantNotFound(
+        ParticipantNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.PARTICIPANT_NOT_FOUND,
             ex.getMessage(),
             request,
             Map.of()
