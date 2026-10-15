@@ -8,6 +8,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.itmo.wmp.platform.dto.common.ErrorResponse;
+import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
+import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
+import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
+import ru.itmo.wmp.platform.exception.user.UserNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

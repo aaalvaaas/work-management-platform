@@ -1,4 +1,4 @@
-package ru.itmo.wmp.platform.exception;
+package ru.itmo.wmp.platform.exception.user;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(Long id) {

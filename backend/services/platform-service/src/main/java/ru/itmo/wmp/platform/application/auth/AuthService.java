@@ -9,8 +9,8 @@ import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
 import ru.itmo.wmp.platform.domain.auth.RefreshToken;
 import ru.itmo.wmp.platform.domain.user.User;
-import ru.itmo.wmp.platform.exception.AccountBlockedException;
-import ru.itmo.wmp.platform.exception.InvalidCredentialsException;
+import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
+import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 
 import java.util.Set;
 

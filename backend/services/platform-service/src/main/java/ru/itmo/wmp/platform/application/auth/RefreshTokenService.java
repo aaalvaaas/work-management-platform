@@ -8,7 +8,7 @@ import ru.itmo.wmp.platform.application.security.SecureTokenService;
 import ru.itmo.wmp.platform.config.properties.JwtProperties;
 import ru.itmo.wmp.platform.domain.auth.RefreshToken;
 import ru.itmo.wmp.platform.domain.user.User;
-import ru.itmo.wmp.platform.exception.InvalidTokenException;
+import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
 
 import java.time.LocalDateTime;
 import java.util.List;

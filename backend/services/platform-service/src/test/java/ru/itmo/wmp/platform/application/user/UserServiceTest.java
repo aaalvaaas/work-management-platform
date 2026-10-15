@@ -10,7 +10,7 @@ import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.domain.user.UserGlobalRole;
-import ru.itmo.wmp.platform.exception.UserNotFoundException;
+import ru.itmo.wmp.platform.exception.user.UserNotFoundException;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package ru.itmo.wmp.platform.exception;
+package ru.itmo.wmp.platform.exception.auth;
 
 public class InvalidTokenException extends RuntimeException {
     public InvalidTokenException() {
