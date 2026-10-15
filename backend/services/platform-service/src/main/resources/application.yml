@@ -19,3 +19,9 @@ jwt:
 registration:
     email-confirmation-ttl: 24h
     invitation-ttl: 72h
+
+nextcloud:
+    enabled: ${NEXTCLOUD_ENABLED:false}
+    base-url: ${NEXTCLOUD_BASE_URL:http://localhost:8081}
+    admin-user: ${NEXTCLOUD_ADMIN_USER:}
+    admin-password: ${NEXTCLOUD_ADMIN_PASSWORD:}

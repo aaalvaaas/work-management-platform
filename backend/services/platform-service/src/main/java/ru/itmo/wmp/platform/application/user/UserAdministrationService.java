@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.application.auth.RefreshTokenService;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
 import ru.itmo.wmp.platform.application.user.repository.UserGlobalRoleRepository;
 import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
@@ -20,6 +21,7 @@ public class UserAdministrationService {
     private final UserGlobalRoleRepository userGlobalRoleRepository;
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
+    private final NextcloudAccountService nextcloudAccountService;
 
     public User block(Long userId, Long actorUserId) {
         if (userId.equals(actorUserId)) {
@@ -34,6 +36,8 @@ public class UserAdministrationService {
 
         refreshTokenService.revokeAllOf(userId);
 
+        nextcloudAccountService.disable(blocked);
+
         return blocked;
     }
 
@@ -42,7 +46,11 @@ public class UserAdministrationService {
 
         user.setStatus(UserStatus.ACTIVE);
 
-        return userRepository.save(user);
+        User unblocked = userRepository.save(user);
+
+        nextcloudAccountService.enable(unblocked);
+
+        return unblocked;
     }
 
     public User grantRole(Long userId, GlobalRole role, Long actorUserId) {

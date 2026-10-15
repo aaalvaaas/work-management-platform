@@ -11,6 +11,7 @@ import ru.itmo.wmp.platform.dto.common.ErrorResponse;
 import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
+import ru.itmo.wmp.platform.exception.nextcloud.NextcloudAccountNotFoundException;
 import ru.itmo.wmp.platform.exception.organization.ParticipantNotFoundException;
 import ru.itmo.wmp.platform.exception.registration.AlreadyRegisteredException;
 import ru.itmo.wmp.platform.exception.registration.EmailAlreadyUsedException;
@@ -96,6 +97,20 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.FORBIDDEN,
             ErrorCode.ACCOUNT_BLOCKED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(NextcloudAccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNextcloudAccountNotFound(
+        NextcloudAccountNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.NEXTCLOUD_ACCOUNT_NOT_FOUND,
             ex.getMessage(),
             request,
             Map.of()

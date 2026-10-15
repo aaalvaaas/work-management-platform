@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
 import ru.itmo.wmp.platform.application.user.repository.UserGlobalRoleRepository;
 import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
@@ -26,6 +27,9 @@ public class UserServiceTest {
 
     @Mock
     private UserGlobalRoleRepository userGlobalRoleRepository;
+
+    @Mock
+    private NextcloudAccountService nextcloudAccountService;
 
     @InjectMocks
     private UserService userService;
@@ -122,6 +126,9 @@ public class UserServiceTest {
             .thenReturn(existing);
 
         User result = userService.updateProfile(1L, "Сергеевич", "Аналитик");
+
+        verify(nextcloudAccountService)
+            .syncProfile(result);
 
         assertEquals("Сергеевич", result.getPatronymic());
         assertEquals("Аналитик", result.getPosition());

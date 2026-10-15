@@ -3,6 +3,7 @@ package ru.itmo.wmp.platform.exception;
 public enum ErrorCode {
     USER_NOT_FOUND,
     PARTICIPANT_NOT_FOUND,
+    NEXTCLOUD_ACCOUNT_NOT_FOUND,
     VALIDATION_ERROR,
     INVALID_CREDENTIALS,
     INVALID_TOKEN,

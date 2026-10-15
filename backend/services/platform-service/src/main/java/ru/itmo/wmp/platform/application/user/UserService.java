@@ -3,6 +3,7 @@ package ru.itmo.wmp.platform.application.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
 import ru.itmo.wmp.platform.application.user.repository.UserGlobalRoleRepository;
 import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
@@ -20,6 +21,7 @@ import java.util.Set;
 public class UserService {
     private final UserRepository userRepository;
     private final UserGlobalRoleRepository userGlobalRoleRepository;
+    private final NextcloudAccountService nextcloudAccountService;
 
     public List<User> findAll() {
         return userRepository.findAll();
@@ -57,6 +59,10 @@ public class UserService {
         user.setPatronymic(patronymic);
         user.setPosition(position);
 
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+
+        nextcloudAccountService.syncProfile(updated);
+
+        return updated;
     }
 }

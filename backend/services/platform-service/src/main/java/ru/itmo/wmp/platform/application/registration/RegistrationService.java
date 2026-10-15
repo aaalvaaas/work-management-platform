@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotification;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotifier;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
@@ -28,6 +29,7 @@ public class RegistrationService {
     private final UserRepository userRepository;
     private final OrganizationParticipantRepository participantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NextcloudAccountService nextcloudAccountService;
 
     public RegistrationStart start(String isuNumber) {
         List<OrganizationParticipant> participants = eligibilityService
@@ -90,6 +92,8 @@ public class RegistrationService {
 
         invitationService.markUsed(invitation);
         invitationService.invalidatePendingFor(invitation.getIsuNumber());
+
+        nextcloudAccountService.provision(user);
 
         return user;
     }
