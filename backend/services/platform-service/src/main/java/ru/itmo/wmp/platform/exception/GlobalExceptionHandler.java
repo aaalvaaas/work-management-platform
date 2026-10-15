@@ -16,6 +16,7 @@ import ru.itmo.wmp.platform.exception.registration.AlreadyRegisteredException;
 import ru.itmo.wmp.platform.exception.registration.EmailAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.registration.InvitationNotValidException;
 import ru.itmo.wmp.platform.exception.registration.RegistrationNotAllowedException;
+import ru.itmo.wmp.platform.exception.user.SelfManagementNotAllowedException;
 import ru.itmo.wmp.platform.exception.user.UserNotFoundException;
 
 import java.time.LocalDateTime;
@@ -165,6 +166,20 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.BAD_REQUEST,
             ErrorCode.INVALID_INVITATION,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(SelfManagementNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleSelfManagement(
+        SelfManagementNotAllowedException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.SELF_MANAGEMENT_NOT_ALLOWED,
             ex.getMessage(),
             request,
             Map.of()
