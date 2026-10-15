@@ -5,12 +5,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.itmo.wmp.platform.domain.User;
-import ru.itmo.wmp.platform.exception.UserNotFoundException;
+import ru.itmo.wmp.platform.application.repository.UserGlobalRoleRepository;
 import ru.itmo.wmp.platform.application.repository.UserRepository;
+import ru.itmo.wmp.platform.domain.GlobalRole;
+import ru.itmo.wmp.platform.domain.User;
+import ru.itmo.wmp.platform.domain.UserGlobalRole;
+import ru.itmo.wmp.platform.exception.UserNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -20,16 +24,15 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private UserGlobalRoleRepository userGlobalRoleRepository;
+
     @InjectMocks
     private UserService userService;
 
     @Test
     void shouldReturnUserWhenExists() {
-        User user = new User();
-
-        user.setId(1L);
-        user.setUsername("test");
-        user.setEmail("test@test.ru");
+        User user = user(1L, "465824");
 
         when(userRepository.findById(1L))
             .thenReturn(Optional.of(user));
@@ -37,8 +40,7 @@ public class UserServiceTest {
         User result = userService.getById(1L);
 
         assertEquals(1L, result.getId());
-        assertEquals("test", result.getUsername());
-        assertEquals("test@test.ru", result.getEmail());
+        assertEquals("465824", result.getIsuNumber());
 
         verify(userRepository)
             .findById(1L);
@@ -53,74 +55,65 @@ public class UserServiceTest {
             UserNotFoundException.class,
             () -> userService.getById(999L)
         );
+    }
 
-        verify(userRepository)
-            .findById(999L);
+    @Test
+    void shouldReturnUserByIsuNumber() {
+        User user = user(1L, "465824");
+
+        when(userRepository.findByIsuNumber("465824"))
+            .thenReturn(Optional.of(user));
+
+        assertEquals(1L, userService.getByIsuNumber("465824").getId());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenIsuNumberIsUnknown() {
+        when(userRepository.findByIsuNumber("465824"))
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            UserNotFoundException.class,
+            () -> userService.getByIsuNumber("465824")
+        );
     }
 
     @Test
     void shouldReturnAllUsers() {
-        User user1 = new User();
-
-        user1.setId(1L);
-        user1.setUsername("user1");
-        user1.setEmail("user1@test.ru");
-
-        User user2 = new User();
-
-        user2.setId(2L);
-        user2.setUsername("user2");
-        user2.setEmail("user2@test.ru");
-
         when(userRepository.findAll())
-            .thenReturn(List.of(user1, user2));
+            .thenReturn(List.of(user(1L, "465824"), user(2L, "465825")));
 
         List<User> result = userService.findAll();
 
         assertEquals(2, result.size());
-        assertEquals("user1", result.get(0).getUsername());
-
-        verify(userRepository)
-            .findAll();
     }
 
     @Test
-    void shouldCreateUser() {
-        User user = new User();
+    void shouldReturnGlobalRolesOfUser() {
+        UserGlobalRole role = new UserGlobalRole();
 
-        user.setUsername("newuser");
-        user.setEmail("new@test.ru");
+        role.setRole(GlobalRole.PLATFORM_ADMIN);
 
-        User savedUser = new User();
+        when(userGlobalRoleRepository.findByUserId(1L))
+            .thenReturn(List.of(role));
 
-        savedUser.setId(1L);
-        savedUser.setUsername("newuser");
-        savedUser.setEmail("new@test.ru");
-
-        when(userRepository.save(user))
-            .thenReturn(savedUser);
-
-        User result = userService.save(user);
-
-        assertNotNull(result.getId());
-        assertEquals("newuser", result.getUsername());
-
-        verify(userRepository)
-            .save(user);
+        assertEquals(Set.of(GlobalRole.PLATFORM_ADMIN), userService.rolesOf(1L));
     }
 
     @Test
-    void shouldUpdateUser() {
-        User existing = new User();
+    void shouldReturnEmptyRolesForRegularUser() {
+        when(userGlobalRoleRepository.findByUserId(1L))
+            .thenReturn(List.of());
 
-        existing.setId(1L);
-        existing.setUsername("old");
-        existing.setEmail("old@test.ru");
+        assertTrue(userService.rolesOf(1L).isEmpty());
+    }
 
-        User updated = new User();
+    @Test
+    void shouldUpdateOnlyAllowedProfileFields() {
+        User existing = user(1L, "465824");
 
-        updated.setUsername("new");
-        updated.setEmail("new@test.ru");
+        existing.setLastName("Дядев");
+        existing.setFirstName("Владислав");
 
         when(userRepository.findById(1L))
             .thenReturn(Optional.of(existing));
@@ -128,41 +121,25 @@ public class UserServiceTest {
         when(userRepository.save(existing))
             .thenReturn(existing);
 
-        User result = userService.update(1L, updated);
+        User result = userService.updateProfile(1L, "Сергеевич", "Аналитик");
 
-        assertEquals("new", result.getUsername());
-        assertEquals("new@test.ru", result.getEmail());
-
-        verify(userRepository)
-            .save(existing);
+        assertEquals("Сергеевич", result.getPatronymic());
+        assertEquals("Аналитик", result.getPosition());
+        assertEquals("Дядев", result.getLastName());
+        assertEquals("Владислав", result.getFirstName());
+        assertEquals("465824", result.getIsuNumber());
     }
 
-    @Test
-    void shouldDeleteUser() {
+    private User user(Long id, String isuNumber) {
         User user = new User();
 
-        user.setId(1L);
+        user.setId(id);
+        user.setIsuNumber(isuNumber);
+        user.setEmail(isuNumber + "@niuitmo.ru");
+        user.setPasswordHash("hash");
+        user.setLastName("Иванов");
+        user.setFirstName("Иван");
 
-        when(userRepository.findById(1L))
-            .thenReturn(Optional.of(user));
-
-        userService.delete(1L);
-
-        verify(userRepository)
-            .delete(user);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenDeletingUnknownUser() {
-        when(userRepository.findById(999L))
-            .thenReturn(Optional.empty());
-
-        assertThrows(
-            UserNotFoundException.class,
-            () -> userService.delete(999L)
-        );
-
-        verify(userRepository, never())
-            .delete(any(User.class));
+        return user;
     }
 }

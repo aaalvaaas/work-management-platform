@@ -13,7 +13,6 @@ import java.util.Optional;
 public class UserRepositoryAdapter implements UserRepository {
     private final JpaUserRepository userRepository;
 
-
     @Override
     public List<User> findAll() {
         return userRepository.findAll();
@@ -25,12 +24,27 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
-        return userRepository.save(user);
+    public Optional<User> findByIsuNumber(String isuNumber) {
+        return userRepository.findByIsuNumber(isuNumber);
     }
 
     @Override
-    public void delete(User user) {
-        userRepository.delete(user);
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public boolean existsByIsuNumber(String isuNumber) {
+        return userRepository.existsByIsuNumber(isuNumber);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public User save(User user) {
+        return userRepository.save(user);
     }
 }

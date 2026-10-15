@@ -8,7 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import ru.itmo.wmp.platform.dto.request.UserRequest;
+import ru.itmo.wmp.platform.domain.User;
+import ru.itmo.wmp.platform.dto.request.UserProfileRequest;
+import ru.itmo.wmp.platform.infrastructure.persistance.JpaUserRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -23,168 +25,78 @@ public class UserControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Test
-    void shouldCreateUser() throws Exception {
-        UserRequest request = new UserRequest(
-            "test",
-            "test@test.ru"
-        );
-
-        mockMvc.perform(
-            post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").exists())
-            .andExpect(jsonPath("$.username").value("test"))
-            .andExpect(jsonPath("$.email").value("test@test.ru"));
-    }
+    @Autowired
+    private JpaUserRepository userRepository;
 
     @Test
     void shouldGetUserById() throws Exception {
-        UserRequest request = new UserRequest(
-            "test",
-            "test@test.ru"
-        );
+        User user = userRepository.save(user("465824"));
 
-        String response = mockMvc.perform(
-            post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        Long id = objectMapper.readTree(response)
-            .get("id")
-            .asLong();
-
-        mockMvc.perform(get("/api/v1/users/{id}", id))
+        mockMvc.perform(get("/api/v1/users/{id}", user.getId()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(id))
-            .andExpect(jsonPath("$.username").value("test"))
-            .andExpect(jsonPath("$.email").value("test@test.ru"));
+            .andExpect(jsonPath("$.id").value(user.getId()))
+            .andExpect(jsonPath("$.isuNumber").value("465824"))
+            .andExpect(jsonPath("$.lastName").value("Иванов"))
+            .andExpect(jsonPath("$.status").value("ACTIVE"))
+            .andExpect(jsonPath("$.globalRoles").isArray());
+    }
+
+    @Test
+    void shouldNotExposePasswordHash() throws Exception {
+        User user = userRepository.save(user("465824"));
+
+        mockMvc.perform(get("/api/v1/users/{id}", user.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.passwordHash").doesNotExist());
     }
 
     @Test
     void shouldReturnUsers() throws Exception {
-        UserRequest request = new UserRequest(
-            "test",
-            "test@test.ru"
-        );
-
-        mockMvc.perform(
-            post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        );
+        userRepository.save(user("465824"));
 
         mockMvc.perform(get("/api/v1/users"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].username").value("test"));
+            .andExpect(jsonPath("$[?(@.isuNumber == '465824')]").exists());
     }
 
     @Test
     void shouldReturn404WhenUserNotFound() throws Exception {
-        mockMvc.perform(get("/api/v1/users/999999"))
+        mockMvc.perform(get("/api/v1/users/{id}", 999999))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("User with id=999999 not found"));
     }
 
     @Test
-    void shouldUpdateUser() throws Exception {
-        UserRequest createRequest = new UserRequest(
-            "old",
-            "old@test.ru"
-        );
+    void shouldUpdateAllowedProfileFields() throws Exception {
+        User user = userRepository.save(user("465824"));
 
-        String response = mockMvc.perform(
-            post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest))
-        )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        Long id = objectMapper.readTree(response)
-            .get("id")
-            .asLong();
-
-        UserRequest updateRequest = new UserRequest(
-            "new",
-            "new@test.ru"
+        UserProfileRequest request = new UserProfileRequest(
+            "Сергеевич",
+            "Аналитик"
         );
 
         mockMvc.perform(
-            put("/api/v1/users/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest))
-        )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(id))
-            .andExpect(jsonPath("$.username").value("new"))
-            .andExpect(jsonPath("$.email").value("new@test.ru"));
-
-        mockMvc.perform(get("/api/v1/users/{id}", id))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.username").value("new"))
-            .andExpect(jsonPath("$.email").value("new@test.ru"));
-    }
-
-    @Test
-    void shouldDeleteUser() throws Exception {
-        UserRequest request = new UserRequest(
-            "test",
-            "test@test.ru"
-        );
-
-        String response = mockMvc.perform(
-            post("/api/v1/users")
+            patch("/api/v1/users/{id}", user.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        Long id = objectMapper.readTree(response)
-            .get("id")
-            .asLong();
-
-        mockMvc.perform(delete("/api/v1/users/{id}", id))
-            .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/api/v1/users/{id}", id))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.patronymic").value("Сергеевич"))
+            .andExpect(jsonPath("$.position").value("Аналитик"))
+            .andExpect(jsonPath("$.isuNumber").value("465824"))
+            .andExpect(jsonPath("$.lastName").value("Иванов"));
     }
 
-    @Test
-    void shouldReturn404WhenDeletingUnknownUser() throws Exception {
-        mockMvc.perform(delete("/api/v1/users/999999"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("User with id=999999 not found"));
-    }
+    private User user(String isuNumber) {
+        User user = new User();
 
-    @Test
-    void shouldReturn400WhenValidationFails() throws Exception {
-        UserRequest request = new UserRequest(
-            "",
-            "wrong-email"
-        );
+        user.setIsuNumber(isuNumber);
+        user.setEmail(isuNumber + "@niuitmo.ru");
+        user.setPasswordHash("hash");
+        user.setLastName("Иванов");
+        user.setFirstName("Иван");
 
-        mockMvc.perform(
-            post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("Validation failed"))
-            .andExpect(jsonPath("$.fieldErrors.username").exists())
-            .andExpect(jsonPath("$.fieldErrors.email").exists());
+        return user;
     }
 }
