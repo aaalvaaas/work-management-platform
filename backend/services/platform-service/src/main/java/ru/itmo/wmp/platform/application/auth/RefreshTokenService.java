@@ -3,11 +3,11 @@ package ru.itmo.wmp.platform.application.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.itmo.wmp.platform.application.repository.RefreshTokenRepository;
+import ru.itmo.wmp.platform.application.auth.repository.RefreshTokenRepository;
 import ru.itmo.wmp.platform.application.security.SecureTokenService;
 import ru.itmo.wmp.platform.config.properties.JwtProperties;
-import ru.itmo.wmp.platform.domain.RefreshToken;
-import ru.itmo.wmp.platform.domain.User;
+import ru.itmo.wmp.platform.domain.auth.RefreshToken;
+import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.exception.InvalidTokenException;
 
 import java.time.LocalDateTime;

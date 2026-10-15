@@ -3,7 +3,7 @@ package ru.itmo.wmp.platform.config.security;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import ru.itmo.wmp.platform.domain.GlobalRole;
+import ru.itmo.wmp.platform.domain.user.GlobalRole;
 
 @Component("accessGuard")
 public class AccessGuard {

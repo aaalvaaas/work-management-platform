@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.itmo.wmp.platform.application.UserService;
-import ru.itmo.wmp.platform.application.repository.UserRepository;
-import ru.itmo.wmp.platform.domain.GlobalRole;
-import ru.itmo.wmp.platform.domain.RefreshToken;
-import ru.itmo.wmp.platform.domain.User;
+import ru.itmo.wmp.platform.application.user.UserService;
+import ru.itmo.wmp.platform.application.user.repository.UserRepository;
+import ru.itmo.wmp.platform.domain.user.GlobalRole;
+import ru.itmo.wmp.platform.domain.auth.RefreshToken;
+import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.exception.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.InvalidCredentialsException;
 

@@ -5,8 +5,8 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import ru.itmo.wmp.platform.config.properties.JwtProperties;
-import ru.itmo.wmp.platform.domain.GlobalRole;
-import ru.itmo.wmp.platform.domain.User;
+import ru.itmo.wmp.platform.domain.user.GlobalRole;
+import ru.itmo.wmp.platform.domain.user.User;
 
 import java.time.Duration;
 import java.time.Instant;
