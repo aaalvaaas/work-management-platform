@@ -1,23 +1,18 @@
-create type user_status as enum
-(
+create type user_status as enum (
     'ACTIVE',
     'BLOCKED'
 );
 
-create type participant_status as enum
-(
+create type participant_status as enum (
     'ACTIVE',
     'INACTIVE'
 );
 
-create table organizations
-(
+create table organizations (
     id bigserial primary key,
     name varchar(255) not null,
-    created_at timestamp not null default current_timestamp,
-
-    constraint chk_organizations_status check (status in ('ACTIVE', 'INACTIVE'))
-)
+    created_at timestamp not null default current_timestamp
+);
 
 alter table users
     add column isu_number varchar(6),
@@ -31,16 +26,16 @@ alter table users
 
 alter table users
     add constraint chk_users_isu_format
-    check (
-        isu_number is null
-        or isu_number ~ '^[1-9][0-9]{5}$'
+        check (
+            isu_number is null
+                or isu_number ~ '^[1-9][0-9]{5}$'
     );
 
 create unique index uq_users_isu_number
-    on users(isu_number) where isu_number is not null;
+    on users(isu_number)
+    where isu_number is not null;
 
-create table organization_participants
-(
+create table organization_participants (
     id bigserial primary key,
     organization_id bigint not null references organizations(id),
     isu_number varchar(6) not null,
@@ -50,17 +45,22 @@ create table organization_participants
     email varchar(255) not null,
     position varchar(255),
     status participant_status not null default 'ACTIVE',
-    user_id bigint references user(id),
+    user_id bigint references users(id),
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp,
 
-    constraint chk_participants_isu_format check (isu_number ~ '^[1-9][0-9]{5}$'),
+    constraint chk_participants_isu_format
+        check (isu_number ~ '^[1-9][0-9]{5}$'),
 
-    constraint uq_participants_org_isu unique (organization_id, isu_number)
+    constraint uq_participants_org_isu
+        unique (organization_id, isu_number)
 );
 
-create index idx_organization_participants_org on organization_participants(organization_id);
+create index idx_organization_participants_org
+    on organization_participants(organization_id);
 
-create index idx_organization_participants_user on organization_participants(user_id);
+create index idx_organization_participants_user
+    on organization_participants(user_id);
 
-create index idx_organizations_participants_email on organization_participants(email);
+create index idx_organization_participants_email
+    on organization_participants(email);

@@ -25,7 +25,7 @@ public class OrganizationParticipant {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization_id;
+    private Organization organization;
 
     @Column(nullable = false, length = 6)
     private String isuNumber;
@@ -57,4 +57,17 @@ public class OrganizationParticipant {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
