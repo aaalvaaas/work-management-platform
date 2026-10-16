@@ -2,12 +2,19 @@ package ru.itmo.wmp.mail.application.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.application.mail.MailImportService;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(
+    prefix = "mail.import",
+    name = "enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 @RequiredArgsConstructor
 public class MailImportScheduler {
     private final MailImportService mailImportService;
