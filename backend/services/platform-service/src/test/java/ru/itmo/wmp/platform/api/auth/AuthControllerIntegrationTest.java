@@ -1,25 +1,28 @@
 package ru.itmo.wmp.platform.api.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.itmo.wmp.platform.IntegrationTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.domain.user.UserStatus;
 import ru.itmo.wmp.platform.dto.auth.LoginRequest;
-import ru.itmo.wmp.platform.dto.auth.RefreshTokenRequest;
 import ru.itmo.wmp.platform.infrastructure.persistance.user.JpaUserRepository;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @IntegrationTest
 public class AuthControllerIntegrationTest {
     private static final String PASSWORD = "Str0ngPassword!";
+    private static final String REFRESH_COOKIE = "wmp_refresh";
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,15 +37,23 @@ public class AuthControllerIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void shouldIssueTokensForValidCredentials() throws Exception {
+    void shouldIssueAccessTokenAndRefreshCookieForValidCredentials() throws Exception {
         userRepository.save(user("465824", UserStatus.ACTIVE));
 
-        mockMvc.perform(loginRequest("465824", PASSWORD))
+        MvcResult result = mockMvc.perform(loginRequest("465824", PASSWORD))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.accessToken").exists())
-            .andExpect(jsonPath("$.refreshToken").exists())
+            .andExpect(jsonPath("$.refreshToken").doesNotExist())
             .andExpect(jsonPath("$.tokenType").value("Bearer"))
-            .andExpect(jsonPath("$.expiresIn").value(900));
+            .andExpect(jsonPath("$.expiresIn").value(900))
+            .andReturn();
+
+        Cookie cookie = result.getResponse().getCookie(REFRESH_COOKIE);
+
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getValue()).isNotBlank();
+        assertThat(cookie.isHttpOnly()).isTrue();
+        assertThat(cookie.getPath()).isEqualTo("/api/v1/auth");
     }
 
     @Test
@@ -74,7 +85,7 @@ public class AuthControllerIntegrationTest {
     void shouldAcceptIssuedAccessTokenOnProtectedEndpoint() throws Exception {
         userRepository.save(user("465824", UserStatus.ACTIVE));
 
-        String accessToken = tokenField("465824", "accessToken");
+        String accessToken = accessToken("465824");
 
         mockMvc.perform(
             get("/api/v1/users/me")
@@ -85,62 +96,59 @@ public class AuthControllerIntegrationTest {
     }
 
     @Test
-    void shouldRotateRefreshTokenAndRejectTheOldOne() throws Exception {
+    void shouldRotateRefreshCookieAndRejectTheOldOne() throws Exception {
         userRepository.save(user("465824", UserStatus.ACTIVE));
 
-        String refreshToken = tokenField("465824", "refreshToken");
+        Cookie issued = refreshCookie("465824");
 
-        mockMvc.perform(refreshRequest(refreshToken))
+        MvcResult refreshed = mockMvc.perform(post("/api/v1/auth/refresh").cookie(issued))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.refreshToken").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andReturn();
 
-        mockMvc.perform(refreshRequest(refreshToken))
+        Cookie rotated = refreshed.getResponse().getCookie(REFRESH_COOKIE);
+
+        assertThat(rotated).isNotNull();
+        assertThat(rotated.getValue()).isNotEqualTo(issued.getValue());
+
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(issued))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.error").value("INVALID_TOKEN"));
     }
 
     @Test
-    void shouldRejectRefreshTokenAfterLogout() throws Exception {
-        userRepository.save(user("465824", UserStatus.ACTIVE));
-
-        String refreshToken = tokenField("465824", "refreshToken");
-
-        mockMvc.perform(
-            post("/api/v1/auth/logout")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new RefreshTokenRequest(refreshToken)))
-        )
-            .andExpect(status().isNoContent());
-
-        mockMvc.perform(refreshRequest(refreshToken))
-            .andExpect(status().isUnauthorized());
+    void shouldRejectRefreshWithoutCookie() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/refresh"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.error").value("INVALID_TOKEN"));
     }
 
     @Test
-    void shouldRejectAccessTokenAfterLogout() throws Exception {
+    void shouldClearCookieAndRejectBothTokensAfterLogout() throws Exception {
         userRepository.save(user("465824", UserStatus.ACTIVE));
 
-        String response = mockMvc.perform(loginRequest("465824", PASSWORD))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        MvcResult login = mockMvc.perform(loginRequest("465824", PASSWORD))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        String accessToken = objectMapper.readTree(response).get("accessToken").asText();
-        String refreshToken = objectMapper.readTree(response).get("refreshToken").asText();
+        Cookie issued = login.getResponse().getCookie(REFRESH_COOKIE);
+        String accessToken = objectMapper
+            .readTree(login.getResponse().getContentAsString())
+            .get("accessToken")
+            .asText();
 
-        mockMvc.perform(
-            get("/api/v1/users/me")
-                .header("Authorization", "Bearer " + accessToken)
-        )
-            .andExpect(status().isOk());
-
-        mockMvc.perform(
+        MvcResult logout = mockMvc.perform(
             post("/api/v1/auth/logout")
+                .cookie(issued)
                 .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new RefreshTokenRequest(refreshToken)))
         )
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        assertThat(logout.getResponse().getCookie(REFRESH_COOKIE).getMaxAge()).isZero();
+
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(issued))
+            .andExpect(status().isUnauthorized());
 
         mockMvc.perform(
             get("/api/v1/users/me")
@@ -156,14 +164,21 @@ public class AuthControllerIntegrationTest {
             .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"));
     }
 
-    private String tokenField(String isuNumber, String field) throws Exception {
+    private Cookie refreshCookie(String isuNumber) throws Exception {
+        return mockMvc.perform(loginRequest(isuNumber, PASSWORD))
+            .andReturn()
+            .getResponse()
+            .getCookie(REFRESH_COOKIE);
+    }
+
+    private String accessToken(String isuNumber) throws Exception {
         String response = mockMvc.perform(loginRequest(isuNumber, PASSWORD))
             .andReturn()
             .getResponse()
             .getContentAsString();
 
         return objectMapper.readTree(response)
-            .get(field)
+            .get("accessToken")
             .asText();
     }
 
@@ -174,12 +189,6 @@ public class AuthControllerIntegrationTest {
         return post("/api/v1/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(new LoginRequest(isuNumber, password)));
-    }
-
-    private MockHttpServletRequestBuilder refreshRequest(String refreshToken) throws Exception {
-        return post("/api/v1/auth/refresh")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(new RefreshTokenRequest(refreshToken)));
     }
 
     private User user(String isuNumber, UserStatus status) {

@@ -1,6 +1,7 @@
 package ru.itmo.wmp.platform.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.itmo.wmp.platform.IntegrationTest;
@@ -11,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.dto.auth.LoginRequest;
-import ru.itmo.wmp.platform.dto.auth.RefreshTokenRequest;
 import ru.itmo.wmp.platform.infrastructure.persistance.user.JpaUserRepository;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -70,11 +70,11 @@ public class UserAdministrationControllerIntegrationTest {
     }
 
     @Test
-    void shouldRevokeRefreshTokensWhenAccountIsBlocked() throws Exception {
+    void shouldRevokeRefreshCookieWhenAccountIsBlocked() throws Exception {
         User admin = userRepository.save(account("465900"));
         User target = userRepository.save(account("465824"));
 
-        String response = mockMvc.perform(
+        Cookie refreshCookie = mockMvc.perform(
             post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
@@ -84,20 +84,12 @@ public class UserAdministrationControllerIntegrationTest {
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
-            .getContentAsString();
-
-        String refreshToken = objectMapper.readTree(response)
-            .get("refreshToken")
-            .asText();
+            .getCookie("wmp_refresh");
 
         mockMvc.perform(asAdmin(post("/api/v1/users/{id}/block", target.getId()), admin))
             .andExpect(status().isOk());
 
-        mockMvc.perform(
-            post("/api/v1/auth/refresh")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new RefreshTokenRequest(refreshToken)))
-        )
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(refreshCookie))
             .andExpect(status().isUnauthorized());
     }
 
