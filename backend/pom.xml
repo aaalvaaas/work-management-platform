@@ -22,6 +22,7 @@
     <name>Work Management Platform Backend</name>
 
     <modules>
+        <module>services/api-gateway</module>
         <module>services/platform-service</module>
         <module>services/mail-service</module>
     </modules>
@@ -38,7 +39,32 @@
 
         <testcontainers.version>1.21.4</testcontainers.version>
 
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+
+        <testcontainers-redis.version>2.2.4</testcontainers-redis.version>
+
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.redis</groupId>
+                <artifactId>testcontainers-redis</artifactId>
+                <version>${testcontainers-redis.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <pluginManagement>
