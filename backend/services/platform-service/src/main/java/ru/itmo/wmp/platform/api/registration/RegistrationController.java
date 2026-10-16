@@ -7,12 +7,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.platform.api.registration.mapper.RegistrationMapper;
 import ru.itmo.wmp.platform.api.user.mapper.UserMapper;
+import ru.itmo.wmp.platform.application.registration.RegistrationRequestService;
 import ru.itmo.wmp.platform.application.registration.RegistrationService;
+import ru.itmo.wmp.platform.application.registration.RegistrationSubmission;
+import ru.itmo.wmp.platform.api.registration.mapper.RegistrationRequestMapper;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.dto.registration.CompleteRegistrationRequest;
 import ru.itmo.wmp.platform.dto.registration.RegistrationDetailsResponse;
 import ru.itmo.wmp.platform.dto.registration.RegistrationStartResponse;
+import ru.itmo.wmp.platform.dto.registration.RegistrationRequestResponse;
 import ru.itmo.wmp.platform.dto.registration.StartRegistrationRequest;
+import ru.itmo.wmp.platform.dto.registration.SubmitRegistrationRequest;
 import ru.itmo.wmp.platform.dto.user.UserResponse;
 
 import java.util.Set;
@@ -23,7 +28,33 @@ import java.util.Set;
 public class RegistrationController {
     private final RegistrationService registrationService;
     private final RegistrationMapper registrationMapper;
+    private final RegistrationRequestService registrationRequestService;
+    private final RegistrationRequestMapper registrationRequestMapper;
     private final UserMapper userMapper;
+
+    @PostMapping("/requests")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+        summary = "Submit a registration request",
+        description = "Asks the organization with the given code to accept a new member; "
+            + "the account is created when an organization administrator approves the request"
+    )
+    public RegistrationRequestResponse submit(
+        @Valid @RequestBody SubmitRegistrationRequest request
+    ) {
+        return registrationRequestMapper.toResponse(
+            registrationRequestService.submit(new RegistrationSubmission(
+                request.organizationCode(),
+                request.isuNumber(),
+                request.lastName(),
+                request.firstName(),
+                request.patronymic(),
+                request.email(),
+                request.position(),
+                request.password()
+            ))
+        );
+    }
 
     @PostMapping("/start")
     @ResponseStatus(HttpStatus.ACCEPTED)

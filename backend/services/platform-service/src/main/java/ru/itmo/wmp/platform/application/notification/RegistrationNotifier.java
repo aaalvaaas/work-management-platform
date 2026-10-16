@@ -4,4 +4,6 @@ public interface RegistrationNotifier {
     void sendEmailConfirmation(RegistrationNotification notification);
 
     void sendInvitation(RegistrationNotification notification);
+
+    void sendRegistrationDecision(RegistrationDecisionNotification notification);
 }
