@@ -115,3 +115,51 @@ export interface ImportPreview {
     batch: ImportBatch;
     changes: ImportChange[];
 }
+
+export type RegistrationRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface RegistrationRequest {
+    id: number;
+    organizationId: number;
+    organizationName: string;
+    isuNumber: string;
+    lastName: string;
+    firstName: string;
+    patronymic: string | null;
+    email: string;
+    position: string | null;
+    status: RegistrationRequestStatus;
+    decisionComment: string | null;
+    createdAt: string;
+    decidedAt: string | null;
+}
+
+export interface RegistrationSubmission {
+    organizationCode: string;
+    isuNumber: string;
+    lastName: string;
+    firstName: string;
+    patronymic: string;
+    email: string;
+    position: string;
+    password: string;
+}
+
+export interface RegistrationDetails {
+    isuNumber: string;
+    lastName: string;
+    firstName: string;
+    patronymic: string | null;
+    email: string;
+    organizations: string[];
+}
+
+export interface Invitation {
+    id: number;
+    isuNumber: string;
+    email: string;
+    organizationId: number;
+    source: string;
+    expiresAt: string;
+    registrationToken: string;
+}
