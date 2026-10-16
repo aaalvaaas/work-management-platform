@@ -24,12 +24,22 @@ public class OrganizationRepositoryAdapter implements OrganizationRepository {
     }
 
     @Override
-    public Organization save(Organization organization) {
-        return organizationRepository.save(organization);
+    public Optional<Organization> findByCode(String code) {
+        return organizationRepository.findByCode(code);
     }
 
     @Override
-    public void delete(Organization organization) {
-        organizationRepository.delete(organization);
+    public boolean existsByCode(String code) {
+        return organizationRepository.existsByCode(code);
+    }
+
+    @Override
+    public List<Organization> findByIdIn(List<Long> ids) {
+        return organizationRepository.findByIdIn(ids);
+    }
+
+    @Override
+    public Organization save(Organization organization) {
+        return organizationRepository.save(organization);
     }
 }

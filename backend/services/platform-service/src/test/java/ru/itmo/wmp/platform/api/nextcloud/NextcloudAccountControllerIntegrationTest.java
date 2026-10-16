@@ -177,6 +177,7 @@ public class NextcloudAccountControllerIntegrationTest {
     private void register() throws Exception {
         Organization organization = new Organization();
 
+        organization.setCode(codeOf("Мегафакультет"));
         organization.setName("Мегафакультет");
 
         OrganizationParticipant participant = new OrganizationParticipant();
@@ -223,4 +224,9 @@ public class NextcloudAccountControllerIntegrationTest {
                 .authorities(new SimpleGrantedAuthority("ROLE_PLATFORM_ADMIN"))
         );
     }
+
+    private String codeOf(String name) {
+        return "org-" + Math.abs(name.hashCode()) % 100000;
+    }
+
 }

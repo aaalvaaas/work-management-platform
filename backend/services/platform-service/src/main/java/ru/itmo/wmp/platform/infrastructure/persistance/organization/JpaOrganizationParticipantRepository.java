@@ -10,6 +10,22 @@ import java.util.Optional;
 public interface JpaOrganizationParticipantRepository extends JpaRepository<OrganizationParticipant, Long> {
     List<OrganizationParticipant> findByOrganizationId(Long organizationId);
 
+    List<OrganizationParticipant> findByUserIdAndStatus(
+        Long userId,
+        ParticipantStatus status
+    );
+
+    List<OrganizationParticipant> findByOrganizationIdAndStatus(
+        Long organizationId,
+        ParticipantStatus status
+    );
+
+    boolean existsByOrganizationIdAndUserIdAndStatus(
+        Long organizationId,
+        Long userId,
+        ParticipantStatus status
+    );
+
     List<OrganizationParticipant> findByIsuNumberAndStatus(
         String isuNumber,
         ParticipantStatus status

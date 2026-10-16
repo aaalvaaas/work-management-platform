@@ -25,6 +25,30 @@ public class OrganizationParticipantRepositoryAdapter implements OrganizationPar
     }
 
     @Override
+    public List<OrganizationParticipant> findByUserIdAndStatus(Long userId, ParticipantStatus status) {
+        return organizationParticipantRepository.findByUserIdAndStatus(userId, status);
+    }
+
+    @Override
+    public List<OrganizationParticipant> findByOrganizationIdAndStatus(
+        Long organizationId,
+        ParticipantStatus status
+    ) {
+        return organizationParticipantRepository
+            .findByOrganizationIdAndStatus(organizationId, status);
+    }
+
+    @Override
+    public boolean existsByOrganizationIdAndUserIdAndStatus(
+        Long organizationId,
+        Long userId,
+        ParticipantStatus status
+    ) {
+        return organizationParticipantRepository
+            .existsByOrganizationIdAndUserIdAndStatus(organizationId, userId, status);
+    }
+
+    @Override
     public List<OrganizationParticipant> findByIsuNumberAndStatus(
         String isuNumber,
         ParticipantStatus status

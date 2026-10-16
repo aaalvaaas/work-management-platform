@@ -17,6 +17,7 @@ import ru.itmo.wmp.platform.domain.organization.OrganizationParticipant;
 import ru.itmo.wmp.platform.domain.organization.ParticipantStatus;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.dto.registration.CompleteRegistrationRequest;
+import ru.itmo.wmp.platform.dto.organization.AssignOrganizationRoleRequest;
 import ru.itmo.wmp.platform.dto.registration.CreateInvitationRequest;
 import ru.itmo.wmp.platform.infrastructure.persistance.organization.JpaOrganizationParticipantRepository;
 import ru.itmo.wmp.platform.infrastructure.persistance.organization.JpaOrganizationRepository;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class InvitationControllerIntegrationTest {
     private static final String ISU_NUMBER = "465824";
     private static final String ADMIN_ISU_NUMBER = "465900";
+    private static final String ADMIN_AUTHORITY = "ROLE_PLATFORM_ADMIN";
 
     @Autowired
     private MockMvc mockMvc;
@@ -62,6 +64,41 @@ public class InvitationControllerIntegrationTest {
                 .with(jwt().jwt(token -> token.subject(String.valueOf(user.getId()))))
         )
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldAllowOrganizationManagerToInvite() throws Exception {
+        Organization organization = organization("Мегафакультет");
+
+        participant(organization, ISU_NUMBER);
+
+        User manager = userRepository.save(account("465900"));
+
+        OrganizationParticipant managerParticipant = participant(organization, "465900");
+
+        managerParticipant.setUser(manager);
+        participantRepository.save(managerParticipant);
+
+        mockMvc.perform(
+            put("/api/v1/organizations/{id}/manager", organization.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                    new AssignOrganizationRoleRequest("465900")
+                ))
+                .with(jwt()
+                    .jwt(token -> token.subject(String.valueOf(
+                        userRepository.save(account("100500")).getId()
+                    )))
+                    .authorities(new SimpleGrantedAuthority(ADMIN_AUTHORITY)))
+        )
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            inviteRequest(organization.getId(), ISU_NUMBER)
+                .with(jwt().jwt(token -> token.subject(String.valueOf(manager.getId()))))
+        )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.isuNumber").value(ISU_NUMBER));
     }
 
     @Test
@@ -145,7 +182,7 @@ public class InvitationControllerIntegrationTest {
         return builder.with(
             jwt()
                 .jwt(token -> token.subject(String.valueOf(admin.getId())))
-                .authorities(new SimpleGrantedAuthority("ROLE_PLATFORM_ADMIN"))
+                .authorities(new SimpleGrantedAuthority(ADMIN_AUTHORITY))
         );
     }
 
@@ -161,6 +198,7 @@ public class InvitationControllerIntegrationTest {
     private Organization organization(String name) {
         Organization organization = new Organization();
 
+        organization.setCode(codeOf(name));
         organization.setName(name);
 
         return organizationRepository.save(organization);
@@ -190,4 +228,9 @@ public class InvitationControllerIntegrationTest {
 
         return user;
     }
+
+    private String codeOf(String name) {
+        return "org-" + Math.abs(name.hashCode()) % 100000;
+    }
+
 }
