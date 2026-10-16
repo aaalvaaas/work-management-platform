@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import ru.itmo.wmp.mail.IntegrationTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.itmo.wmp.mail.application.mail.MailImportResult;
 import ru.itmo.wmp.mail.application.mail.MailImportService;
@@ -27,7 +27,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@IntegrationTest
 @Transactional
 public class MailImportServiceIntegrationTest {
     @Autowired

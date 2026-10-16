@@ -1,4 +1,4 @@
-package ru.itmo.wmp.mail.infrastructure.storage.minio;
+package ru.itmo.wmp.mail.infrastructure.storage.s3;
 
 import io.minio.*;
 import org.junit.jupiter.api.Test;
@@ -7,7 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.itmo.wmp.mail.config.properties.MinioProperties;
+import ru.itmo.wmp.mail.config.properties.StorageProperties;
 import ru.itmo.wmp.mail.exception.StorageException;
 
 import java.io.ByteArrayInputStream;
@@ -18,15 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MinioStorageServiceTest {
+public class S3StorageServiceTest {
     @Mock
     private MinioClient minioClient;
 
     @Mock
-    private MinioProperties properties;
+    private StorageProperties properties;
 
     @InjectMocks
-    private MinioStorageService minioStorageService;
+    private S3StorageService s3StorageService;
 
     @Test
     void shouldUploadFileSuccessfully() throws Exception {
@@ -38,7 +38,7 @@ public class MinioStorageServiceTest {
         when(properties.bucket())
             .thenReturn(bucket);
 
-        String storageKey = minioStorageService.upload(
+        String storageKey = s3StorageService.upload(
             filename,
             new ByteArrayInputStream(content),
             content.length,
@@ -68,7 +68,7 @@ public class MinioStorageServiceTest {
         when(properties.bucket())
             .thenReturn(bucket);
 
-        minioStorageService.delete(storageKey);
+        s3StorageService.delete(storageKey);
 
         ArgumentCaptor<RemoveObjectArgs> captor = ArgumentCaptor.forClass(RemoveObjectArgs.class);
 
@@ -91,13 +91,13 @@ public class MinioStorageServiceTest {
         when(properties.bucket())
             .thenReturn(bucket);
 
-        doThrow(new RuntimeException("MinIO unavailable"))
+        doThrow(new RuntimeException("Storage unavailable"))
             .when(minioClient)
             .putObject(any(PutObjectArgs.class));
 
         StorageException exception = assertThrows(
             StorageException.class,
-            () -> minioStorageService.upload(
+            () -> s3StorageService.upload(
                 filename,
                 new ByteArrayInputStream(content),
                 content.length,
@@ -121,13 +121,13 @@ public class MinioStorageServiceTest {
         when(properties.bucket())
             .thenReturn(bucket);
 
-        doThrow(new RuntimeException("MinIO unavailable"))
+        doThrow(new RuntimeException("Storage unavailable"))
             .when(minioClient)
             .removeObject(any(RemoveObjectArgs.class));
 
         StorageException exception = assertThrows(
             StorageException.class,
-            () -> minioStorageService.delete(storageKey)
+            () -> s3StorageService.delete(storageKey)
         );
 
         assertTrue(exception.getMessage().contains("Failed to delete file"));
@@ -155,7 +155,7 @@ public class MinioStorageServiceTest {
         when(minioClient.getObject(any(GetObjectArgs.class)))
             .thenReturn(response);
 
-        InputStream inputStream = minioStorageService.download(storageKey);
+        InputStream inputStream = s3StorageService.download(storageKey);
 
         String downloadedContent = new String(
             inputStream.readAllBytes(),
@@ -184,11 +184,11 @@ public class MinioStorageServiceTest {
             .thenReturn(bucket);
 
         when(minioClient.getObject(any(GetObjectArgs.class)))
-            .thenThrow(new RuntimeException("MinIO unavailable"));
+            .thenThrow(new RuntimeException("Storage unavailable"));
 
         StorageException exception = assertThrows(
             StorageException.class,
-            () -> minioStorageService.download(storageKey)
+            () -> s3StorageService.download(storageKey)
         );
 
         assertTrue(exception.getMessage().contains("Failed to download file"));

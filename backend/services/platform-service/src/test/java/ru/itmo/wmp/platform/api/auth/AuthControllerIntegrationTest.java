@@ -3,13 +3,11 @@ package ru.itmo.wmp.platform.api.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import ru.itmo.wmp.platform.IntegrationTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.domain.user.UserStatus;
 import ru.itmo.wmp.platform.dto.auth.LoginRequest;
@@ -19,9 +17,7 @@ import ru.itmo.wmp.platform.infrastructure.persistance.user.JpaUserRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
+@IntegrationTest
 public class AuthControllerIntegrationTest {
     private static final String PASSWORD = "Str0ngPassword!";
 

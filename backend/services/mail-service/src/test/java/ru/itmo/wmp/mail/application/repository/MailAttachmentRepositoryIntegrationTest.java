@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import ru.itmo.wmp.mail.IntegrationTest;
 import ru.itmo.wmp.mail.domain.MailAttachment;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.domain.MailProcessingStatus;
@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@SpringBootTest
+@IntegrationTest
 @Transactional
 public class MailAttachmentRepositoryIntegrationTest {
     @Autowired
