@@ -13,7 +13,6 @@ public class TokenMapper {
     public TokenResponse toResponse(AuthTokens tokens) {
         return new TokenResponse(
             tokens.accessToken(),
-            tokens.refreshToken(),
             TOKEN_TYPE,
             tokens.accessTokenExpiresInSeconds()
         );

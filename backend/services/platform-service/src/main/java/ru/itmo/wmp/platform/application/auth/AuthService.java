@@ -56,7 +56,9 @@ public class AuthService {
     }
 
     public void logout(String refreshToken, IssuedAccessToken accessToken) {
-        refreshTokenService.revokeQuietly(refreshToken);
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            refreshTokenService.revokeQuietly(refreshToken);
+        }
 
         accessTokenService.revoke(accessToken);
     }
