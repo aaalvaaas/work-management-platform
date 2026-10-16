@@ -10,7 +10,12 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { Loader } from "../components/Loader";
 import { useResource } from "../components/useResource";
 
-export function RegistrationRequests({ organizationId }: { organizationId: number }) {
+interface RegistrationRequestsProps {
+    organizationId: number;
+    onDecision?: () => void;
+}
+
+export function RegistrationRequests({ organizationId, onDecision }: RegistrationRequestsProps) {
     const requests = useResource(
         useCallback(() => listRegistrationRequests(organizationId), [organizationId]),
         [organizationId]
@@ -29,6 +34,7 @@ export function RegistrationRequests({ organizationId }: { organizationId: numbe
             await action();
 
             requests.reload();
+            onDecision?.();
         } catch (failure) {
             setError(failure);
         }

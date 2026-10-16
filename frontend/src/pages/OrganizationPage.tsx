@@ -247,7 +247,7 @@ export function OrganizationPage() {
                 </form>
             </section>
 
-            <RegistrationRequests organizationId={id} />
+            <RegistrationRequests organizationId={id} onDecision={participants.reload} />
 
             <section className="card">
                 <h2>Участники</h2>
