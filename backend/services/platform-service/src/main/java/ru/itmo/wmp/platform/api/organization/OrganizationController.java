@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.platform.api.organization.mapper.OrganizationMapper;
 import ru.itmo.wmp.platform.application.organization.OrganizationService;
+import ru.itmo.wmp.platform.application.organization.ParticipantExclusionService;
 import ru.itmo.wmp.platform.config.security.AccessGuard;
 import ru.itmo.wmp.platform.config.security.JwtPrincipal;
 import ru.itmo.wmp.platform.domain.organization.Organization;
@@ -24,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrganizationController {
     private final OrganizationService organizationService;
+    private final ParticipantExclusionService participantExclusionService;
     private final OrganizationMapper organizationMapper;
     private final AccessGuard accessGuard;
 
@@ -163,6 +165,19 @@ public class OrganizationController {
             .stream()
             .map(organizationMapper::toResponse)
             .toList();
+    }
+
+    @DeleteMapping("/{id}/participants/{isuNumber}")
+    @PreAuthorize("@accessGuard.isOrganizationAdmin(#id, authentication)")
+    @Operation(
+        summary = "Exclude participant from organization",
+        description = "Keeps the account and other memberships, ends membership in this organization and its blocks"
+    )
+    public ParticipantResponse excludeParticipant(
+        @PathVariable Long id,
+        @PathVariable String isuNumber
+    ) {
+        return organizationMapper.toResponse(participantExclusionService.exclude(id, isuNumber));
     }
 
     private OrganizationResponse toResponse(Organization organization) {
