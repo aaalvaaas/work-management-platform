@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { OrganizationPage } from "./pages/OrganizationPage";
 import { OrganizationsPage } from "./pages/OrganizationsPage";
 import { BlockPage } from "./pages/BlockPage";
+import { ImportPage } from "./pages/ImportPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
 export function App() {
@@ -26,6 +27,10 @@ export function App() {
                             <Route
                                 path="/organizations/:organizationId/blocks/:blockId"
                                 element={<BlockPage />}
+                            />
+                            <Route
+                                path="/organizations/:organizationId/import"
+                                element={<ImportPage />}
                             />
                         </Route>
                     </Route>
