@@ -31,15 +31,15 @@ public class IntegrationTestContainers {
     DynamicPropertyRegistrar objectStoragePropertiesRegistrar(GenericContainer<?> objectStorageContainer) {
         return registry -> {
             registry.add(
-                "minio.endpoint",
+                "storage.endpoint",
                 () -> "http://%s:%d".formatted(
                     objectStorageContainer.getHost(),
                     objectStorageContainer.getMappedPort(S3_PORT)
                 )
             );
-            registry.add("minio.access-key", () -> "test-access-key");
-            registry.add("minio.secret-key", () -> "test-secret-key");
-            registry.add("minio.bucket", () -> TEST_BUCKET);
+            registry.add("storage.access-key", () -> "test-access-key");
+            registry.add("storage.secret-key", () -> "test-secret-key");
+            registry.add("storage.bucket", () -> TEST_BUCKET);
         };
     }
 }

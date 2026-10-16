@@ -2,8 +2,8 @@ package ru.itmo.wmp.mail.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "minio")
-public record MinioProperties(
+@ConfigurationProperties(prefix = "storage")
+public record StorageProperties(
     String endpoint,
     String accessKey,
     String secretKey,

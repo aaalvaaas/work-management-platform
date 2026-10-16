@@ -1,4 +1,4 @@
-package ru.itmo.wmp.mail.infrastructure.storage.minio;
+package ru.itmo.wmp.mail.infrastructure.storage.s3;
 
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
@@ -9,22 +9,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.itmo.wmp.mail.config.properties.MinioProperties;
+import ru.itmo.wmp.mail.config.properties.StorageProperties;
 import ru.itmo.wmp.mail.exception.StorageException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MinioBucketInitializerTest {
+public class StorageBucketInitializerTest {
     @Mock
     private MinioClient minioClient;
 
     @Mock
-    private MinioProperties properties;
+    private StorageProperties properties;
 
     @InjectMocks
-    private MinioBucketInitializer minioBucketInitializer;
+    private StorageBucketInitializer storageBucketInitializer;
 
     @Test
     void shouldNotCreateBucketWhenBucketAlreadyExists() throws Exception {
@@ -36,7 +36,7 @@ public class MinioBucketInitializerTest {
         when(minioClient.bucketExists(any(BucketExistsArgs.class)))
             .thenReturn(true);
 
-        minioBucketInitializer.init();
+        storageBucketInitializer.init();
 
         verify(minioClient)
             .bucketExists(any(BucketExistsArgs.class));
@@ -55,7 +55,7 @@ public class MinioBucketInitializerTest {
         when(minioClient.bucketExists(any(BucketExistsArgs.class)))
             .thenReturn(false);
 
-        minioBucketInitializer.init();
+        storageBucketInitializer.init();
 
         verify(minioClient)
             .bucketExists(any(BucketExistsArgs.class));
@@ -76,7 +76,7 @@ public class MinioBucketInitializerTest {
 
         ArgumentCaptor<BucketExistsArgs> captor = ArgumentCaptor.forClass(BucketExistsArgs.class);
 
-        minioBucketInitializer.init();
+        storageBucketInitializer.init();
 
         verify(minioClient)
             .bucketExists(captor.capture());
@@ -91,16 +91,16 @@ public class MinioBucketInitializerTest {
         when(properties.bucket())
             .thenReturn(bucket);
 
-        doThrow(new RuntimeException("MinIO unavailable"))
+        doThrow(new RuntimeException("Storage unavailable"))
             .when(minioClient)
             .bucketExists(any(BucketExistsArgs.class));
 
         StorageException exception = assertThrows(
             StorageException.class,
-            () -> minioBucketInitializer.init()
+            () -> storageBucketInitializer.init()
         );
 
-        assertTrue(exception.getMessage().contains("Failed to initialize MinIO bucket"));
+        assertTrue(exception.getMessage().contains("Failed to initialize storage bucket"));
 
         assertInstanceOf(
             RuntimeException.class,
