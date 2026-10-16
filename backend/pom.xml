@@ -36,6 +36,8 @@
 
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
+        <testcontainers.version>1.21.4</testcontainers.version>
+
     </properties>
 
     <build>

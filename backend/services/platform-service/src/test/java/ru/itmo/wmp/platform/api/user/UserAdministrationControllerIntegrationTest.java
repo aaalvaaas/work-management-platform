@@ -3,14 +3,12 @@ package ru.itmo.wmp.platform.api.user;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import ru.itmo.wmp.platform.IntegrationTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.dto.auth.LoginRequest;
 import ru.itmo.wmp.platform.dto.auth.RefreshTokenRequest;
@@ -20,9 +18,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
+@IntegrationTest
 public class UserAdministrationControllerIntegrationTest {
     private static final String PASSWORD = "Str0ngPassword!";
 

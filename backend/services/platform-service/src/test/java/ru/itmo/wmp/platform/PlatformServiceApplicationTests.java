@@ -1,9 +1,8 @@
 package ru.itmo.wmp.platform;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@IntegrationTest
 class PlatformServiceApplicationTests {
 
 	@Test
