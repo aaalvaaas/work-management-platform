@@ -11,6 +11,9 @@ import ru.itmo.wmp.platform.dto.common.ErrorResponse;
 import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
+import ru.itmo.wmp.platform.exception.imports.ImportBatchNotFoundException;
+import ru.itmo.wmp.platform.exception.imports.ImportFileException;
+import ru.itmo.wmp.platform.exception.imports.ImportNotApplicableException;
 import ru.itmo.wmp.platform.exception.nextcloud.NextcloudAccountNotFoundException;
 import ru.itmo.wmp.platform.exception.organization.BlockNameAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.organization.BlockNotFoundException;
@@ -116,6 +119,48 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.NOT_FOUND,
             ErrorCode.NEXTCLOUD_ACCOUNT_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(ImportFileException.class)
+    public ResponseEntity<ErrorResponse> handleImportFile(
+        ImportFileException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.IMPORT_FILE_INVALID,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(ImportBatchNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleImportBatchNotFound(
+        ImportBatchNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.IMPORT_BATCH_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(ImportNotApplicableException.class)
+    public ResponseEntity<ErrorResponse> handleImportNotApplicable(
+        ImportNotApplicableException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.IMPORT_NOT_APPLICABLE,
             ex.getMessage(),
             request,
             Map.of()
