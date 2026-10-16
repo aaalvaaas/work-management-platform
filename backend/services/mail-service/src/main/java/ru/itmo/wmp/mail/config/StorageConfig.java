@@ -4,12 +4,12 @@ import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.itmo.wmp.mail.config.properties.MinioProperties;
+import ru.itmo.wmp.mail.config.properties.StorageProperties;
 
 @Configuration
 @RequiredArgsConstructor
-public class MinioConfig {
-    private final MinioProperties properties;
+public class StorageConfig {
+    private final StorageProperties properties;
 
     @Bean
     public MinioClient minioClient() {

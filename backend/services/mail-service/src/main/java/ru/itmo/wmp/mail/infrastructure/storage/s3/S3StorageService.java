@@ -1,4 +1,4 @@
-package ru.itmo.wmp.mail.infrastructure.storage.minio;
+package ru.itmo.wmp.mail.infrastructure.storage.s3;
 
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
@@ -7,7 +7,7 @@ import io.minio.RemoveObjectArgs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.itmo.wmp.mail.application.storage.StorageService;
-import ru.itmo.wmp.mail.config.properties.MinioProperties;
+import ru.itmo.wmp.mail.config.properties.StorageProperties;
 import ru.itmo.wmp.mail.exception.StorageException;
 
 import java.io.ByteArrayInputStream;
@@ -16,9 +16,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class MinioStorageService implements StorageService {
+public class S3StorageService implements StorageService {
     private final MinioClient minioClient;
-    private final MinioProperties properties;
+    private final StorageProperties properties;
 
     @Override
     public String upload(String filename, InputStream inputStream, long size, String contentType) {
