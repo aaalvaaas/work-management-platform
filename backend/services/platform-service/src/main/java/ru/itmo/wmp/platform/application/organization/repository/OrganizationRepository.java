@@ -10,7 +10,11 @@ public interface OrganizationRepository {
 
     Optional<Organization> findById(Long id);
 
-    Organization save(Organization organization);
+    Optional<Organization> findByCode(String code);
 
-    void delete(Organization organization);
+    boolean existsByCode(String code);
+
+    List<Organization> findByIdIn(List<Long> ids);
+
+    Organization save(Organization organization);
 }

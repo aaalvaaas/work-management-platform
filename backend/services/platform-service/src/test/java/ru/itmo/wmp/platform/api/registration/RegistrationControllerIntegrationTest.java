@@ -206,6 +206,7 @@ public class RegistrationControllerIntegrationTest {
     private OrganizationParticipant participant(String organizationName, String isuNumber) {
         Organization organization = new Organization();
 
+        organization.setCode(codeOf(organizationName));
         organization.setName(organizationName);
 
         Organization saved = organizationRepository.save(organization);
@@ -222,4 +223,9 @@ public class RegistrationControllerIntegrationTest {
 
         return participantRepository.save(participant);
     }
+
+    private String codeOf(String name) {
+        return "org-" + Math.abs(name.hashCode()) % 100000;
+    }
+
 }

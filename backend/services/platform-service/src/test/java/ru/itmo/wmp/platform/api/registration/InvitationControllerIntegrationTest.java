@@ -161,6 +161,7 @@ public class InvitationControllerIntegrationTest {
     private Organization organization(String name) {
         Organization organization = new Organization();
 
+        organization.setCode(codeOf(name));
         organization.setName(name);
 
         return organizationRepository.save(organization);
@@ -190,4 +191,9 @@ public class InvitationControllerIntegrationTest {
 
         return user;
     }
+
+    private String codeOf(String name) {
+        return "org-" + Math.abs(name.hashCode()) % 100000;
+    }
+
 }

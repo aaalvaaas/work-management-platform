@@ -11,6 +11,22 @@ public interface OrganizationParticipantRepository {
 
     List<OrganizationParticipant> findByOrganizationId(Long organizationId);
 
+    List<OrganizationParticipant> findByUserIdAndStatus(
+        Long userId,
+        ParticipantStatus status
+    );
+
+    List<OrganizationParticipant> findByOrganizationIdAndStatus(
+        Long organizationId,
+        ParticipantStatus status
+    );
+
+    boolean existsByOrganizationIdAndUserIdAndStatus(
+        Long organizationId,
+        Long userId,
+        ParticipantStatus status
+    );
+
     List<OrganizationParticipant> findByIsuNumberAndStatus(
         String isuNumber,
         ParticipantStatus status

@@ -12,6 +12,9 @@ import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
 import ru.itmo.wmp.platform.exception.nextcloud.NextcloudAccountNotFoundException;
+import ru.itmo.wmp.platform.exception.organization.NotOrganizationParticipantException;
+import ru.itmo.wmp.platform.exception.organization.OrganizationCodeAlreadyUsedException;
+import ru.itmo.wmp.platform.exception.organization.OrganizationNotFoundException;
 import ru.itmo.wmp.platform.exception.organization.ParticipantNotFoundException;
 import ru.itmo.wmp.platform.exception.registration.AlreadyRegisteredException;
 import ru.itmo.wmp.platform.exception.registration.EmailAlreadyUsedException;
@@ -111,6 +114,48 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.NOT_FOUND,
             ErrorCode.NEXTCLOUD_ACCOUNT_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(OrganizationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationNotFound(
+        OrganizationNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.ORGANIZATION_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(OrganizationCodeAlreadyUsedException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationCodeAlreadyUsed(
+        OrganizationCodeAlreadyUsedException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.ORGANIZATION_CODE_ALREADY_USED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(NotOrganizationParticipantException.class)
+    public ResponseEntity<ErrorResponse> handleNotOrganizationParticipant(
+        NotOrganizationParticipantException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.NOT_ORGANIZATION_PARTICIPANT,
             ex.getMessage(),
             request,
             Map.of()
