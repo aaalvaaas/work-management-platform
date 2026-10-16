@@ -2,8 +2,11 @@ package ru.itmo.wmp.platform.api.organization.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.platform.domain.organization.Block;
+import ru.itmo.wmp.platform.domain.organization.BlockMember;
 import ru.itmo.wmp.platform.domain.organization.BlockRole;
+import ru.itmo.wmp.platform.domain.organization.OrganizationParticipant;
 import ru.itmo.wmp.platform.dto.organization.BlockResponse;
+import ru.itmo.wmp.platform.dto.organization.BlockMemberResponse;
 import ru.itmo.wmp.platform.dto.organization.BlockRoleResponse;
 
 @Component
@@ -27,6 +30,22 @@ public class BlockMapper {
             role.getUser().fullName(),
             role.getRole(),
             role.getGrantedAt()
+        );
+    }
+
+    public BlockMemberResponse toResponse(BlockMember member) {
+        OrganizationParticipant participant = member.getParticipant();
+
+        return new BlockMemberResponse(
+            participant.getId(),
+            participant.getIsuNumber(),
+            participant.getLastName(),
+            participant.getFirstName(),
+            participant.getPatronymic(),
+            participant.getEmail(),
+            participant.getPosition(),
+            participant.getUser() != null,
+            member.getAddedAt()
         );
     }
 }

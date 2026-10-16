@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.platform.api.organization.mapper.BlockMapper;
+import ru.itmo.wmp.platform.application.organization.BlockMembershipService;
 import ru.itmo.wmp.platform.application.organization.BlockService;
 import ru.itmo.wmp.platform.config.security.JwtPrincipal;
 import ru.itmo.wmp.platform.domain.organization.Block;
@@ -22,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BlockController {
     private final BlockService blockService;
+    private final BlockMembershipService blockMembershipService;
     private final BlockMapper blockMapper;
 
     @GetMapping
@@ -98,6 +100,58 @@ public class BlockController {
                 JwtPrincipal.userId(jwt)
             )
         );
+    }
+
+    @GetMapping("/{blockId}/members")
+    @PreAuthorize("@accessGuard.isOrganizationMember(#organizationId, authentication)")
+    @Operation(
+        summary = "List block members"
+    )
+    public List<BlockMemberResponse> getMembers(
+        @PathVariable Long organizationId,
+        @PathVariable Long blockId
+    ) {
+        return blockMembershipService.membersOf(organizationId, blockId)
+            .stream()
+            .map(blockMapper::toResponse)
+            .toList();
+    }
+
+    @PostMapping("/{blockId}/members")
+    @PreAuthorize("@accessGuard.canManageBlock(#organizationId, #blockId, authentication)")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+        summary = "Add participant to block",
+        description = "Only an active participant of the organization that owns the block"
+    )
+    public BlockMemberResponse addMember(
+        @PathVariable Long organizationId,
+        @PathVariable Long blockId,
+        @Valid @RequestBody AddBlockMemberRequest request,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        return blockMapper.toResponse(
+            blockMembershipService.addMember(
+                organizationId,
+                blockId,
+                request.isuNumber(),
+                JwtPrincipal.userId(jwt)
+            )
+        );
+    }
+
+    @DeleteMapping("/{blockId}/members/{isuNumber}")
+    @PreAuthorize("@accessGuard.canManageBlock(#organizationId, #blockId, authentication)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+        summary = "Remove participant from block"
+    )
+    public void removeMember(
+        @PathVariable Long organizationId,
+        @PathVariable Long blockId,
+        @PathVariable String isuNumber
+    ) {
+        blockMembershipService.removeMember(organizationId, blockId, isuNumber);
     }
 
     private BlockResponse toResponse(Block block) {
