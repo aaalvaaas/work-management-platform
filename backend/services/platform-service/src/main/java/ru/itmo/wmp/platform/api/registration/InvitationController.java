@@ -22,11 +22,11 @@ public class InvitationController {
     private final RegistrationMapper registrationMapper;
 
     @PostMapping
-    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    @PreAuthorize("@accessGuard.isOrganizationAdmin(#organizationId, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary = "Invite a participant",
-        description = "Sends a single use invitation to a participant of the organization"
+        description = "Sent by the organization manager or its administrator"
     )
     public InvitationResponse invite(
         @PathVariable Long organizationId,
