@@ -1,7 +1,7 @@
 package ru.itmo.wmp.platform.application.auth;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import ru.itmo.wmp.platform.config.properties.JwtProperties;
@@ -34,7 +34,7 @@ public class AccessTokenService {
             .build();
 
         JwsHeader header = JwsHeader
-            .with(MacAlgorithm.HS256)
+            .with(SignatureAlgorithm.RS256)
             .build();
 
         return jwtEncoder
