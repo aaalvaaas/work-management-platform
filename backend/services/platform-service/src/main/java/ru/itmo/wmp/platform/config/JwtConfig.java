@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.converter.RsaKeyConverters;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.util.StringUtils;
 import ru.itmo.wmp.platform.config.properties.JwtProperties;
+import ru.itmo.wmp.platform.config.security.RevokedAccessTokenValidator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +74,11 @@ public class JwtConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(RSAKey jwtSigningKey, JwtProperties jwtProperties) {
+    public JwtDecoder jwtDecoder(
+        RSAKey jwtSigningKey,
+        JwtProperties jwtProperties,
+        RevokedAccessTokenValidator revokedAccessTokenValidator
+    ) {
         NimbusJwtDecoder decoder;
 
         try {
@@ -84,7 +90,10 @@ public class JwtConfig {
             throw new IllegalStateException("Unable to read the JWT public key", exception);
         }
 
-        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(jwtProperties.issuer()));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+            JwtValidators.createDefaultWithIssuer(jwtProperties.issuer()),
+            revokedAccessTokenValidator
+        ));
 
         return decoder;
     }

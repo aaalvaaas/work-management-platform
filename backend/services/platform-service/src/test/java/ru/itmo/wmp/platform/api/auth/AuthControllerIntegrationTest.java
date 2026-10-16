@@ -117,6 +117,39 @@ public class AuthControllerIntegrationTest {
     }
 
     @Test
+    void shouldRejectAccessTokenAfterLogout() throws Exception {
+        userRepository.save(user("465824", UserStatus.ACTIVE));
+
+        String response = mockMvc.perform(loginRequest("465824", PASSWORD))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String accessToken = objectMapper.readTree(response).get("accessToken").asText();
+        String refreshToken = objectMapper.readTree(response).get("refreshToken").asText();
+
+        mockMvc.perform(
+            get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + accessToken)
+        )
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            post("/api/v1/auth/logout")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RefreshTokenRequest(refreshToken)))
+        )
+            .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+            get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + accessToken)
+        )
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldValidateLoginRequest() throws Exception {
         mockMvc.perform(loginRequest("abc", ""))
             .andExpect(status().isBadRequest())

@@ -4,6 +4,12 @@ spring:
         username: wmp
         password: wmp
 
+    data:
+        redis:
+            host: ${REDIS_HOST:localhost}
+            port: ${REDIS_PORT:6379}
+            timeout: 2s
+
 logging:
     level:
         root: INFO

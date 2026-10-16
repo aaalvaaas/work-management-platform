@@ -102,6 +102,43 @@ public class UserAdministrationControllerIntegrationTest {
     }
 
     @Test
+    void shouldRejectIssuedAccessTokenWhenAccountIsBlocked() throws Exception {
+        User admin = userRepository.save(account("465900"));
+        User target = userRepository.save(account("465824"));
+
+        String response = mockMvc.perform(
+            post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                    new LoginRequest(target.getIsuNumber(), PASSWORD)
+                ))
+        )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String accessToken = objectMapper.readTree(response)
+            .get("accessToken")
+            .asText();
+
+        mockMvc.perform(
+            get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + accessToken)
+        )
+            .andExpect(status().isOk());
+
+        mockMvc.perform(asAdmin(post("/api/v1/users/{id}/block", target.getId()), admin))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + accessToken)
+        )
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldKeepOrganizationMembershipWhenAccountIsBlocked() throws Exception {
         User admin = userRepository.save(account("465900"));
         User target = userRepository.save(account("465824"));

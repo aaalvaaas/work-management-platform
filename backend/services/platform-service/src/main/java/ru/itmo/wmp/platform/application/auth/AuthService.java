@@ -55,8 +55,10 @@ public class AuthService {
         return issueTokens(user);
     }
 
-    public void logout(String token) {
-        refreshTokenService.revokeQuietly(token);
+    public void logout(String refreshToken, IssuedAccessToken accessToken) {
+        refreshTokenService.revokeQuietly(refreshToken);
+
+        accessTokenService.revoke(accessToken);
     }
 
     private AuthTokens issueTokens(User user) {
