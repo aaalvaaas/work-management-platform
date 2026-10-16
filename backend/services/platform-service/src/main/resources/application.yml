@@ -24,6 +24,9 @@ jwt:
     private-key-location: ${JWT_PRIVATE_KEY_LOCATION:}
     public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
 
+authorization:
+    cache-ttl: ${AUTHORIZATION_CACHE_TTL:60s}
+
 registration:
     email-confirmation-ttl: 24h
     invitation-ttl: 72h

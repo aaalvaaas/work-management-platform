@@ -4,25 +4,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import ru.itmo.wmp.platform.application.organization.repository.BlockRoleRepository;
-import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
-import ru.itmo.wmp.platform.application.organization.repository.OrganizationRoleRepository;
+import ru.itmo.wmp.platform.application.security.UserAuthorization;
+import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
 import ru.itmo.wmp.platform.domain.organization.BlockRoleType;
 import ru.itmo.wmp.platform.domain.organization.OrganizationRoleType;
-import ru.itmo.wmp.platform.domain.organization.ParticipantStatus;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @Component("accessGuard")
 @RequiredArgsConstructor
 public class AccessGuard {
     private static final String ROLE_PREFIX = "ROLE_";
 
-    private final OrganizationRoleRepository organizationRoleRepository;
-    private final OrganizationParticipantRepository participantRepository;
-    private final BlockRoleRepository blockRoleRepository;
+    private final UserAuthorizationService userAuthorizationService;
 
     public boolean isPlatformAdmin(Authentication authentication) {
         if (authentication == null) {
@@ -67,13 +64,10 @@ public class AccessGuard {
             return true;
         }
 
-        return currentUserId(authentication)
-            .map(userId -> participantRepository.existsByOrganizationIdAndUserIdAndStatus(
-                organizationId,
-                userId,
-                ParticipantStatus.ACTIVE
-            ))
-            .orElse(false);
+        return authorizes(
+            authentication,
+            authorization -> authorization.isActiveMemberOf(organizationId)
+        );
     }
 
     public boolean isBlockManager(Long blockId, Authentication authentication) {
@@ -81,13 +75,10 @@ public class AccessGuard {
             return false;
         }
 
-        return currentUserId(authentication)
-            .map(userId -> blockRoleRepository.existsByBlockIdAndUserIdAndRole(
-                blockId,
-                userId,
-                BlockRoleType.MANAGER
-            ))
-            .orElse(false);
+        return authorizes(
+            authentication,
+            authorization -> authorization.hasBlockRole(blockId, BlockRoleType.MANAGER)
+        );
     }
 
     public boolean canManageBlock(
@@ -112,13 +103,20 @@ public class AccessGuard {
             return false;
         }
 
+        return authorizes(
+            authentication,
+            authorization -> authorization.hasOrganizationRole(organizationId, roles)
+        );
+    }
+
+    private boolean authorizes(
+        Authentication authentication,
+        Predicate<UserAuthorization> predicate
+    ) {
         return currentUserId(authentication)
-            .map(userId -> organizationRoleRepository.existsByOrganizationIdAndUserIdAndRoleIn(
-                organizationId,
-                userId,
-                roles
-            ))
-            .orElse(false);
+            .map(userAuthorizationService::of)
+            .filter(predicate)
+            .isPresent();
     }
 
     private Optional<Long> currentUserId(Authentication authentication) {

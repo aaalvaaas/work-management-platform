@@ -7,6 +7,7 @@ import ru.itmo.wmp.platform.application.organization.repository.BlockMemberRepos
 import ru.itmo.wmp.platform.application.organization.repository.BlockRoleRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationRoleRepository;
+import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
 import ru.itmo.wmp.platform.domain.organization.BlockRole;
 import ru.itmo.wmp.platform.domain.organization.OrganizationParticipant;
 import ru.itmo.wmp.platform.domain.organization.OrganizationRole;
@@ -25,6 +26,7 @@ public class ParticipantExclusionService {
     private final BlockMemberRepository blockMemberRepository;
     private final BlockRoleRepository blockRoleRepository;
     private final OrganizationRoleRepository organizationRoleRepository;
+    private final UserAuthorizationService userAuthorizationService;
 
     public OrganizationParticipant exclude(Long organizationId, String isuNumber) {
         OrganizationParticipant participant = participantRepository
@@ -44,6 +46,8 @@ public class ParticipantExclusionService {
         if (user != null) {
             revokeOrganizationRoles(organizationId, user.getId());
             revokeBlockRoles(organizationId, user.getId());
+
+            userAuthorizationService.evict(user.getId());
         }
 
         return excluded;
