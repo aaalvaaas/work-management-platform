@@ -22,6 +22,9 @@ public class MailParserTest {
     @Mock
     private MailContentExtractor contentExtractor;
 
+    @Mock
+    private MailAttachmentExtractor attachmentExtractor;
+
     @InjectMocks
     private MailParser mailParser;
 
