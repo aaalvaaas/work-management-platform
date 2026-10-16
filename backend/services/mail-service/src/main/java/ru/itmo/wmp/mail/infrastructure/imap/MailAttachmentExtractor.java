@@ -41,9 +41,10 @@ public class MailAttachmentExtractor {
 
     private boolean isAttachment(Part part) throws MessagingException {
         String disposition = part.getDisposition();
-        String filename = part.getFileName();
 
-        return Part.ATTACHMENT.equalsIgnoreCase(disposition) || filename != null;
+        if (Part.INLINE.equalsIgnoreCase(disposition)) return false;
+
+        return Part.ATTACHMENT.equalsIgnoreCase(disposition) || part.getFileName() != null;
     }
 
     private ParsedAttachment createAttachment(Part part) throws MessagingException, IOException {
