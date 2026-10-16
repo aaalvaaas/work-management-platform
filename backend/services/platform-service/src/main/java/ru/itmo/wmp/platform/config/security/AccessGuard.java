@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import ru.itmo.wmp.platform.application.organization.repository.BlockRoleRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationRoleRepository;
+import ru.itmo.wmp.platform.domain.organization.BlockRoleType;
 import ru.itmo.wmp.platform.domain.organization.OrganizationRoleType;
 import ru.itmo.wmp.platform.domain.organization.ParticipantStatus;
 import ru.itmo.wmp.platform.domain.user.GlobalRole;
@@ -20,6 +22,7 @@ public class AccessGuard {
 
     private final OrganizationRoleRepository organizationRoleRepository;
     private final OrganizationParticipantRepository participantRepository;
+    private final BlockRoleRepository blockRoleRepository;
 
     public boolean isPlatformAdmin(Authentication authentication) {
         if (authentication == null) {
@@ -71,6 +74,29 @@ public class AccessGuard {
                 ParticipantStatus.ACTIVE
             ))
             .orElse(false);
+    }
+
+    public boolean isBlockManager(Long blockId, Authentication authentication) {
+        if (blockId == null) {
+            return false;
+        }
+
+        return currentUserId(authentication)
+            .map(userId -> blockRoleRepository.existsByBlockIdAndUserIdAndRole(
+                blockId,
+                userId,
+                BlockRoleType.MANAGER
+            ))
+            .orElse(false);
+    }
+
+    public boolean canManageBlock(
+        Long organizationId,
+        Long blockId,
+        Authentication authentication
+    ) {
+        return isOrganizationAdmin(organizationId, authentication)
+            || isBlockManager(blockId, authentication);
     }
 
     private boolean hasOrganizationRole(

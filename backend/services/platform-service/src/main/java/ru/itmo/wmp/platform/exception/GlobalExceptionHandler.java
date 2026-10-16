@@ -12,6 +12,8 @@ import ru.itmo.wmp.platform.exception.auth.AccountBlockedException;
 import ru.itmo.wmp.platform.exception.auth.InvalidCredentialsException;
 import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
 import ru.itmo.wmp.platform.exception.nextcloud.NextcloudAccountNotFoundException;
+import ru.itmo.wmp.platform.exception.organization.BlockNameAlreadyUsedException;
+import ru.itmo.wmp.platform.exception.organization.BlockNotFoundException;
 import ru.itmo.wmp.platform.exception.organization.NotOrganizationParticipantException;
 import ru.itmo.wmp.platform.exception.organization.OrganizationCodeAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.organization.OrganizationNotFoundException;
@@ -114,6 +116,34 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.NOT_FOUND,
             ErrorCode.NEXTCLOUD_ACCOUNT_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(BlockNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBlockNotFound(
+        BlockNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.BLOCK_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(BlockNameAlreadyUsedException.class)
+    public ResponseEntity<ErrorResponse> handleBlockNameAlreadyUsed(
+        BlockNameAlreadyUsedException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.BLOCK_NAME_ALREADY_USED,
             ex.getMessage(),
             request,
             Map.of()
