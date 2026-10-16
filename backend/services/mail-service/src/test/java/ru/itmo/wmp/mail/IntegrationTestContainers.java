@@ -4,12 +4,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistrar;
-import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class IntegrationTestContainers {
     private static final String TEST_BUCKET = "mail-attachments-test";
+    private static final int S3_PORT = 9090;
 
     @Bean
     @ServiceConnection
@@ -18,16 +20,25 @@ public class IntegrationTestContainers {
     }
 
     @Bean
-    MinIOContainer minioContainer() {
-        return new MinIOContainer("minio/minio:RELEASE.2025-07-23T15-54-02Z");
+    GenericContainer<?> objectStorageContainer() {
+        return new GenericContainer<>("adobe/s3mock:5.2.3")
+            .withExposedPorts(S3_PORT)
+            .withEnv("initialBuckets", TEST_BUCKET)
+            .waitingFor(Wait.forHttp("/favicon.ico").forPort(S3_PORT).forStatusCodeMatching(status -> true));
     }
 
     @Bean
-    DynamicPropertyRegistrar minioPropertiesRegistrar(MinIOContainer minioContainer) {
+    DynamicPropertyRegistrar objectStoragePropertiesRegistrar(GenericContainer<?> objectStorageContainer) {
         return registry -> {
-            registry.add("minio.endpoint", minioContainer::getS3URL);
-            registry.add("minio.access-key", minioContainer::getUserName);
-            registry.add("minio.secret-key", minioContainer::getPassword);
+            registry.add(
+                "minio.endpoint",
+                () -> "http://%s:%d".formatted(
+                    objectStorageContainer.getHost(),
+                    objectStorageContainer.getMappedPort(S3_PORT)
+                )
+            );
+            registry.add("minio.access-key", () -> "test-access-key");
+            registry.add("minio.secret-key", () -> "test-secret-key");
             registry.add("minio.bucket", () -> TEST_BUCKET);
         };
     }
