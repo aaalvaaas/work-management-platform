@@ -3,6 +3,7 @@ package ru.itmo.wmp.platform.application.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.platform.application.auth.AccessTokenService;
 import ru.itmo.wmp.platform.application.auth.RefreshTokenService;
 import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
 import ru.itmo.wmp.platform.application.user.repository.UserGlobalRoleRepository;
@@ -20,6 +21,7 @@ public class UserAdministrationService {
     private final UserRepository userRepository;
     private final UserGlobalRoleRepository userGlobalRoleRepository;
     private final RefreshTokenService refreshTokenService;
+    private final AccessTokenService accessTokenService;
     private final UserService userService;
     private final NextcloudAccountService nextcloudAccountService;
 
@@ -35,6 +37,8 @@ public class UserAdministrationService {
         User blocked = userRepository.save(user);
 
         refreshTokenService.revokeAllOf(userId);
+
+        accessTokenService.revokeAllOf(userId);
 
         nextcloudAccountService.disable(blocked);
 

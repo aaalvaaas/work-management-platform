@@ -26,6 +26,30 @@ services:
         networks:
             -   wmp-network
 
+    redis:
+        image: redis:7-alpine
+
+        container_name: wmp-redis
+
+        restart: unless-stopped
+
+        command: redis-server --appendonly yes
+
+        ports:
+            -   "6379:6379"
+
+        volumes:
+            -   redis-data:/data
+
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+        networks:
+            -   wmp-network
+
     seaweedfs:
         image: chrislusf/seaweedfs:4.48
 
@@ -81,6 +105,8 @@ services:
 
 volumes:
     postgres-data:
+
+    redis-data:
 
     seaweedfs-data:
 

@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationRoleRepository;
+import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
 import ru.itmo.wmp.platform.application.user.UserService;
 import ru.itmo.wmp.platform.domain.organization.*;
 import ru.itmo.wmp.platform.domain.user.User;
@@ -25,6 +26,7 @@ public class OrganizationService {
     private final OrganizationRoleRepository organizationRoleRepository;
     private final OrganizationParticipantRepository participantRepository;
     private final UserService userService;
+    private final UserAuthorizationService userAuthorizationService;
 
     public List<Organization> findAll() {
         return organizationRepository.findAll();
@@ -108,9 +110,15 @@ public class OrganizationService {
             .findByOrganizationIdAndRole(organizationId, OrganizationRoleType.MANAGER)
             .orElseGet(() -> role(organization, user, OrganizationRoleType.MANAGER, actorUserId));
 
+        if (managerRole.getUser() != null) {
+            userAuthorizationService.evict(managerRole.getUser().getId());
+        }
+
         managerRole.setUser(user);
         managerRole.setGrantedBy(userService.getById(actorUserId));
         managerRole.setGrantedAt(LocalDateTime.now());
+
+        userAuthorizationService.evict(user.getId());
 
         return organizationRoleRepository.save(managerRole);
     }
@@ -121,6 +129,8 @@ public class OrganizationService {
         User user = userService.getByIsuNumber(isuNumber);
 
         requireActiveParticipant(organizationId, user.getId(), isuNumber);
+
+        userAuthorizationService.evict(user.getId());
 
         return organizationRoleRepository
             .findByOrganizationIdAndUserIdAndRole(
@@ -146,6 +156,8 @@ public class OrganizationService {
                 OrganizationRoleType.ADMIN
             )
             .ifPresent(organizationRoleRepository::delete);
+
+        userAuthorizationService.evict(user.getId());
     }
 
     private void requireActiveParticipant(Long organizationId, Long userId, String isuNumber) {

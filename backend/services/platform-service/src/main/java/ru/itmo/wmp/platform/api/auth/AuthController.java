@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.platform.api.auth.mapper.TokenMapper;
 import ru.itmo.wmp.platform.application.auth.AuthService;
@@ -47,12 +49,16 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(
         summary = "Log out",
-        description = "Revokes the refresh token"
+        description = "Revokes the refresh token and the access token sent with the request"
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(
-        @Valid @RequestBody RefreshTokenRequest request
+        @Valid @RequestBody RefreshTokenRequest request,
+        @AuthenticationPrincipal Jwt accessToken
     ) {
-        authService.logout(request.refreshToken());
+        authService.logout(
+            request.refreshToken(),
+            tokenMapper.toIssuedAccessToken(accessToken)
+        );
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.application.organization.repository.BlockMemberRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
+import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
 import ru.itmo.wmp.platform.application.user.UserService;
 import ru.itmo.wmp.platform.domain.organization.Block;
 import ru.itmo.wmp.platform.domain.organization.BlockMember;
@@ -23,6 +24,7 @@ public class BlockMembershipService {
     private final OrganizationParticipantRepository participantRepository;
     private final BlockService blockService;
     private final UserService userService;
+    private final UserAuthorizationService userAuthorizationService;
 
     public List<BlockMember> membersOf(Long organizationId, Long blockId) {
         blockService.getInOrganization(organizationId, blockId);
@@ -39,6 +41,8 @@ public class BlockMembershipService {
     ) {
         Block block = blockService.getInOrganization(organizationId, blockId);
         OrganizationParticipant participant = activeParticipant(organizationId, isuNumber);
+
+        evictParticipant(participant);
 
         return blockMemberRepository
             .findByBlockIdAndParticipantId(blockId, participant.getId())
@@ -64,11 +68,19 @@ public class BlockMembershipService {
         blockMemberRepository
             .findByBlockIdAndParticipantId(blockId, participant.getId())
             .ifPresent(blockMemberRepository::delete);
+
+        evictParticipant(participant);
     }
 
     @Transactional
     public void removeFromAllBlocks(Long participantId) {
         blockMemberRepository.deleteAll(blockMemberRepository.findByParticipantId(participantId));
+    }
+
+    private void evictParticipant(OrganizationParticipant participant) {
+        if (participant.getUser() != null) {
+            userAuthorizationService.evict(participant.getUser().getId());
+        }
     }
 
     private OrganizationParticipant activeParticipant(Long organizationId, String isuNumber) {

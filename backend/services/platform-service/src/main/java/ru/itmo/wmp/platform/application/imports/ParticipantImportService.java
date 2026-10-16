@@ -10,6 +10,7 @@ import ru.itmo.wmp.platform.application.organization.ParticipantExclusionService
 import ru.itmo.wmp.platform.application.organization.repository.BlockMemberRepository;
 import ru.itmo.wmp.platform.application.organization.repository.BlockRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
+import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
 import ru.itmo.wmp.platform.application.user.UserService;
 import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.imports.*;
@@ -37,6 +38,7 @@ public class ParticipantImportService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final ParticipantExclusionService participantExclusionService;
+    private final UserAuthorizationService userAuthorizationService;
 
     public ImportBatch upload(
         Long organizationId,
@@ -203,6 +205,8 @@ public class ParticipantImportService {
 
         OrganizationParticipant saved = participantRepository.save(participant);
 
+        evictParticipant(saved);
+
         syncBlocks(saved, change, blocksByName, actorUserId);
     }
 
@@ -224,7 +228,15 @@ public class ParticipantImportService {
 
         OrganizationParticipant saved = participantRepository.save(participant);
 
+        evictParticipant(saved);
+
         syncBlocks(saved, change, blocksByName, actorUserId);
+    }
+
+    private void evictParticipant(OrganizationParticipant participant) {
+        if (participant.getUser() != null) {
+            userAuthorizationService.evict(participant.getUser().getId());
+        }
     }
 
     private void applyFields(OrganizationParticipant participant, ImportChange change) {

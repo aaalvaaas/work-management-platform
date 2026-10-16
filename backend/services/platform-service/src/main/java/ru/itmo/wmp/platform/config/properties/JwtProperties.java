@@ -6,9 +6,11 @@ import java.time.Duration;
 
 @ConfigurationProperties(prefix = "jwt")
 public record JwtProperties(
-    String secret,
     String issuer,
     Duration accessTokenTtl,
-    Duration refreshTokenTtl
+    Duration refreshTokenTtl,
+    String keyId,
+    String privateKeyLocation,
+    String publicKeyLocation
 ) {
 }
