@@ -9,6 +9,7 @@ import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
 import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
 import ru.itmo.wmp.mail.domain.MailMessage;
+import ru.itmo.wmp.mail.domain.MailProcessingStatus;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
@@ -89,14 +90,43 @@ public class MailImportService {
                 );
 
                 imported.getAndIncrement();
-            } catch (DuplicateMailException ignored) {
-                log.debug(
-                    "Skipped duplicate mail: messageId={}",
-                    parsedMail.mailMessage().getMessageId()
+            } catch (DuplicateMailException duplicate) {
+                retryOrSkip(parsedMail, imported, skipped);
+            } catch (RuntimeException failure) {
+                log.warn(
+                    "Mail {} could not be processed: {}",
+                    parsedMail.mailMessage().getMessageId(),
+                    failure.getMessage()
                 );
-
-                skipped.getAndIncrement();
             }
         });
+    }
+
+    private void retryOrSkip(
+        ParsedMail parsedMail,
+        AtomicInteger imported,
+        AtomicInteger skipped
+    ) {
+        String messageId = parsedMail.mailMessage().getMessageId();
+        MailMessage stored = mailService.getMail(messageId);
+
+        if (stored.getProcessingStatus() != MailProcessingStatus.FAILED) {
+            log.debug("Skipped duplicate mail: messageId={}", messageId);
+
+            skipped.getAndIncrement();
+
+            return;
+        }
+
+        try {
+            mailProcessor.process(stored);
+            imapMailClient.markAsRead(parsedMail.sourceMessage());
+
+            log.info("Processed mail {} after an earlier failure", messageId);
+
+            imported.getAndIncrement();
+        } catch (RuntimeException failure) {
+            log.warn("Mail {} failed again: {}", messageId, failure.getMessage());
+        }
     }
 }

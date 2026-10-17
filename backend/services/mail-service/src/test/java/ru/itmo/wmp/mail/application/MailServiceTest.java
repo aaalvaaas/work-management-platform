@@ -205,7 +205,7 @@ public class MailServiceTest {
     }
 
     @Test
-    void shouldRejectFailedToProcessingTransition() {
+    void shouldAllowRetryOfAFailedMail() {
         MailMessage mail = new MailMessage();
 
         mail.setMessageId("test-001");
@@ -214,12 +214,13 @@ public class MailServiceTest {
         when(mailRepository.findByMessageId("test-001"))
             .thenReturn(Optional.of(mail));
 
-        assertThrows(
-            InvalidMailStatusTransitionException.class,
-            () -> mailService.markAsProcessing("test-001")
-        );
+        when(mailRepository.save(mail))
+            .thenReturn(mail);
 
-        verify(mailRepository, never())
-            .save(any());
+        mailService.markAsProcessing("test-001");
+
+        assertEquals(MailProcessingStatus.PROCESSING, mail.getProcessingStatus());
+
+        verify(mailRepository).save(mail);
     }
 }
