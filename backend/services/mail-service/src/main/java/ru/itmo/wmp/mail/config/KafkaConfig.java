@@ -3,6 +3,7 @@ package ru.itmo.wmp.mail.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.boot.autoconfigure.kafka.KafkaConnectionDetails;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +23,15 @@ public class KafkaConfig {
     @Bean
     public ProducerFactory<String, MailParsedEvent> mailEventProducerFactory(
         KafkaProperties kafkaProperties,
+        KafkaConnectionDetails connectionDetails,
         ObjectMapper objectMapper
     ) {
         Map<String, Object> settings = kafkaProperties.buildProducerProperties(null);
+
+        settings.put(
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+            connectionDetails.getProducerBootstrapServers()
+        );
 
         settings.put(ProducerConfig.ACKS_CONFIG, "all");
         settings.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);

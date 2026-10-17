@@ -10,6 +10,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.testcontainers.kafka.KafkaContainer;
 import ru.itmo.wmp.mail.IntegrationTest;
 import ru.itmo.wmp.mail.application.MailProcessor;
 import ru.itmo.wmp.mail.application.MailService;
@@ -33,8 +34,8 @@ public class MailEventPublishingIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
+    @Autowired
+    private KafkaContainer kafkaContainer;
 
     @Value("${wmp.events.mail-parsed-topic}")
     private String topic;
@@ -85,7 +86,7 @@ public class MailEventPublishingIntegrationTest {
 
     private KafkaConsumer<String, String> consumer() {
         return new KafkaConsumer<>(Map.of(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers(),
             ConsumerConfig.GROUP_ID_CONFIG, "mail-event-test-" + UUID.randomUUID(),
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
