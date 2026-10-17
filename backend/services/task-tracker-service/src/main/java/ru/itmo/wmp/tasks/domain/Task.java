@@ -51,8 +51,11 @@ public class Task {
     @Column
     private String sourceReference;
 
-    @Column(nullable = false)
+    @Column
     private Long authorUserId;
+
+    @Column(length = 320)
+    private String requesterEmail;
 
     @Column
     private Long assigneeUserId;

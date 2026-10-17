@@ -16,6 +16,7 @@ public record TaskResponse(
     boolean requiresApproval,
     TaskSource source,
     Long authorUserId,
+    String requesterEmail,
     Long assigneeUserId,
     String assigneeIsuNumber,
     LocalDate dueDate,

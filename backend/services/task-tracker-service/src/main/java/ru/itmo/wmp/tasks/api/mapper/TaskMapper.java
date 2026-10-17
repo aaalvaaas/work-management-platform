@@ -26,6 +26,7 @@ public class TaskMapper {
             task.isRequiresApproval(),
             task.getSource(),
             task.getAuthorUserId(),
+            task.getRequesterEmail(),
             task.getAssigneeUserId(),
             task.getAssigneeIsuNumber(),
             task.getDueDate(),
