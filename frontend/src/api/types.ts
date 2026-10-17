@@ -163,3 +163,34 @@ export interface Invitation {
     expiresAt: string;
     registrationToken: string;
 }
+
+export type TaskStatus = "NEW" | "IN_PROGRESS" | "ON_APPROVAL" | "DONE" | "CANCELLED";
+
+export type TaskSource = "MANUAL" | "MAIL";
+
+export interface Task {
+    id: number;
+    organizationId: number;
+    blockId: number | null;
+    title: string;
+    description: string | null;
+    status: TaskStatus;
+    requiresApproval: boolean;
+    source: TaskSource;
+    authorUserId: number;
+    assigneeUserId: number | null;
+    assigneeIsuNumber: string | null;
+    dueDate: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface NewTask {
+    organizationId: number;
+    blockId: number | null;
+    title: string;
+    description: string;
+    assigneeIsuNumber: string | null;
+    dueDate: string | null;
+    requiresApproval: boolean;
+}

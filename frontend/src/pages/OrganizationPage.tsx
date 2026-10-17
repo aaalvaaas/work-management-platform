@@ -95,6 +95,10 @@ export function OrganizationPage() {
         <>
             <h1>{organization.data.name}</h1>
 
+            <p>
+                <Link to={`/organizations/${id}/tasks`}>Задачи организации</Link>
+            </p>
+
             <section className="card">
                 <dl className="facts">
                     <dt>Код</dt>
