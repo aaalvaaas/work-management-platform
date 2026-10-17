@@ -36,6 +36,9 @@ public class DeckCard {
     @Column
     private Long deckCardId;
 
+    @Column(length = 6)
+    private String assignedUid;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private DeckSyncStatus syncStatus;

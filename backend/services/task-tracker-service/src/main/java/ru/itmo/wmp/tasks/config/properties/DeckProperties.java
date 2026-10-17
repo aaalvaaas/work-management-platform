@@ -11,6 +11,7 @@ public record DeckProperties(
     String adminUser,
     String adminPassword,
     Duration timeout,
+    Duration pushInterval,
     Duration pullInterval
 ) {
 }
