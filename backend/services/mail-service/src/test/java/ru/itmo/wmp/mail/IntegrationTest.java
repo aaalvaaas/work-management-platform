@@ -10,13 +10,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest(
-    properties = {
-        "mail.import.enabled=false",
-        "mail.imap.username=test",
-        "mail.imap.password=test"
-    }
-)
+@SpringBootTest(properties = "mail.import.enabled=false")
 @Import(IntegrationTestContainers.class)
 public @interface IntegrationTest {
 }
