@@ -20,6 +20,7 @@ app:
 
 platform:
     base-url: ${WMP_PLATFORM_URL:http://localhost:8080}
+    internal-key: ${INTERNAL_API_KEY:local-internal-key-change-me}
     timeout: 3s
 
 deck:
