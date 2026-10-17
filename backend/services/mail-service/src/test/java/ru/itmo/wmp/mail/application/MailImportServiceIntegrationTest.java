@@ -16,6 +16,8 @@ import ru.itmo.wmp.mail.application.storage.StorageService;
 import ru.itmo.wmp.mail.domain.MailAttachment;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.domain.MailProcessingStatus;
+import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
+import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedAttachment;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
@@ -44,6 +46,9 @@ public class MailImportServiceIntegrationTest {
 
     @MockitoBean
     private ImapMailClient imapMailClient;
+
+    @MockitoBean
+    private MailboxDirectory mailboxDirectory;
 
     @MockitoBean
     private StorageService storageService;
@@ -84,7 +89,21 @@ public class MailImportServiceIntegrationTest {
             List.of(attachment)
         );
 
-        when(imapMailClient.fetchUnread())
+        MailboxConnection mailbox = new MailboxConnection(
+            1L,
+            10L,
+            "megafaculty",
+            "imap.mail.ru",
+            993,
+            "megafaculty@mail.ru",
+            "secret",
+            "INBOX",
+            true
+        );
+
+        when(mailboxDirectory.activeMailboxes()).thenReturn(List.of(mailbox));
+
+        when(imapMailClient.fetchUnread(mailbox))
             .thenReturn(List.of(parsedMail));
 
         when(storageService.upload(

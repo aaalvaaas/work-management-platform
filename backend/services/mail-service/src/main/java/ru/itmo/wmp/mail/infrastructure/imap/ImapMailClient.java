@@ -4,7 +4,7 @@ import jakarta.mail.*;
 import jakarta.mail.search.FlagTerm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.itmo.wmp.mail.config.properties.MailProperties;
+import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
 import ru.itmo.wmp.mail.exception.MailImportException;
 
 import java.io.IOException;
@@ -15,12 +15,11 @@ import java.util.Properties;
 @Component
 @RequiredArgsConstructor
 public class ImapMailClient {
-    private final MailProperties properties;
     private final MailParser mailParser;
 
-    private List<Message> getUnreadMessages() throws MessagingException {
-        Store store = connect();
-        Folder inbox = store.getFolder("INBOX");
+    private List<Message> getUnreadMessages(MailboxConnection mailbox) throws MessagingException {
+        Store store = connect(mailbox);
+        Folder inbox = store.getFolder(mailbox.folder());
         inbox.open(Folder.READ_WRITE);
 
         Message[] messages = inbox.search(
@@ -44,9 +43,9 @@ public class ImapMailClient {
         }
     }
 
-    public List<ParsedMail> fetchUnread() {
+    public List<ParsedMail> fetchUnread(MailboxConnection mailbox) {
         try {
-            List<Message> messages = getUnreadMessages();
+            List<Message> messages = getUnreadMessages(mailbox);
 
             return messages.stream()
                 .map(message -> {
@@ -63,26 +62,26 @@ public class ImapMailClient {
 
     }
 
-    private Session createSession() {
+    private Session createSession(MailboxConnection mailbox) {
         Properties props = new Properties();
 
         props.put("mail.store.protocol", "imaps");
-        props.put("mail.imap.host", properties.host());
-        props.put("mail.imap.port", properties.port());
-        props.put("mail.imap.ssl.enabled", properties.ssl());
+        props.put("mail.imap.host", mailbox.host());
+        props.put("mail.imap.port", mailbox.port());
+        props.put("mail.imap.ssl.enabled", mailbox.useSsl());
 
         return Session.getInstance(props);
     }
 
-    private Store connect() throws MessagingException {
-        Session session = createSession();
+    private Store connect(MailboxConnection mailbox) throws MessagingException {
+        Session session = createSession(mailbox);
         Store store = session.getStore();
 
         store.connect(
-            properties.host(),
-            properties.port(),
-            properties.username(),
-            properties.password()
+            mailbox.host(),
+            mailbox.port(),
+            mailbox.username(),
+            mailbox.password()
         );
 
         return store;

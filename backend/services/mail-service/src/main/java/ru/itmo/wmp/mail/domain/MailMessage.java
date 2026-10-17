@@ -33,6 +33,12 @@ public class MailMessage {
     @Column(nullable = false)
     private LocalDateTime receivedAt;
 
+    @Column
+    private Long organizationId;
+
+    @Column
+    private Long mailboxId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MailProcessingStatus processingStatus;

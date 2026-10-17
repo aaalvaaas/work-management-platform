@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.itmo.wmp.mail.application.MailProcessor;
 import ru.itmo.wmp.mail.application.MailService;
 import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
+import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
+import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
@@ -22,15 +24,53 @@ public class MailImportService {
     private final MailService mailService;
     private final MailProcessor mailProcessor;
     private final MailAttachmentService mailAttachmentService;
+    private final MailboxDirectory mailboxDirectory;
 
     public MailImportResult importUnreadMails() {
-        List<ParsedMail> mails = imapMailClient.fetchUnread();
-
         AtomicInteger imported = new AtomicInteger();
         AtomicInteger skipped = new AtomicInteger();
 
+        for (MailboxConnection mailbox : mailboxDirectory.activeMailboxes()) {
+            importFrom(mailbox, imported, skipped);
+        }
+
+        log.info(
+            "Mail import completed: imported={}, skipped={}",
+            imported.get(),
+            skipped.get()
+        );
+
+        return new MailImportResult(
+            imported.get(),
+            skipped.get()
+        );
+    }
+
+    private void importFrom(
+        MailboxConnection mailbox,
+        AtomicInteger imported,
+        AtomicInteger skipped
+    ) {
+        List<ParsedMail> mails;
+
+        try {
+            mails = imapMailClient.fetchUnread(mailbox);
+        } catch (RuntimeException exception) {
+            log.warn(
+                "Mailbox {} of organization {} could not be read: {}",
+                mailbox.username(),
+                mailbox.organizationId(),
+                exception.getMessage()
+            );
+
+            return;
+        }
+
         mails.forEach(parsedMail -> {
             try {
+                parsedMail.mailMessage().setOrganizationId(mailbox.organizationId());
+                parsedMail.mailMessage().setMailboxId(mailbox.id());
+
                 MailMessage savedMail = mailService.receiveMail(parsedMail.mailMessage());
 
                 parsedMail.attachments().forEach(attachment -> mailAttachmentService.save(savedMail, attachment));
@@ -54,16 +94,5 @@ public class MailImportService {
                 skipped.getAndIncrement();
             }
         });
-
-        log.info(
-            "Mail import completed: imported={}, skipped={}",
-            imported.get(),
-            skipped.get()
-        );
-
-        return new MailImportResult(
-            imported.get(),
-            skipped.get()
-        );
     }
 }
