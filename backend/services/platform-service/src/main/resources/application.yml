@@ -31,6 +31,9 @@ auth:
         secure: ${REFRESH_COOKIE_SECURE:false}
         same-site: ${REFRESH_COOKIE_SAME_SITE:Lax}
 
+internal-api:
+    key: ${INTERNAL_API_KEY:local-internal-key-change-me}
+
 encryption:
     key: ${ENCRYPTION_KEY:cUJtZFZzWnB4S2JMc1duVjNxVHlFZ0hhN2RQZ01rWnc=}
 

@@ -19,6 +19,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
         "/api/v1/health",
+        "/internal/**",
         "/.well-known/jwks.json",
         "/api/v1/auth/**",
         "/api/v1/registration/**",
