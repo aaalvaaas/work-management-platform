@@ -31,6 +31,9 @@ public class DeckBoard {
     private Long deckBoardId;
 
     @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
