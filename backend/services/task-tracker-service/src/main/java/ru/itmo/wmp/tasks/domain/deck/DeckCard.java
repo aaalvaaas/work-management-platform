@@ -27,13 +27,13 @@ public class DeckCard {
     @Column(nullable = false)
     private Long taskId;
 
-    @Column(nullable = false)
+    @Column
     private Long deckBoardId;
 
-    @Column(nullable = false)
+    @Column
     private Long deckStackId;
 
-    @Column(nullable = false)
+    @Column
     private Long deckCardId;
 
     @Enumerated(EnumType.STRING)

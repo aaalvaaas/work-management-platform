@@ -27,7 +27,7 @@ public class DeckBoard {
     @Column
     private Long blockId;
 
-    @Column(nullable = false)
+    @Column
     private Long deckBoardId;
 
     @Column(nullable = false)
