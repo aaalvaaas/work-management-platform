@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.tasks.application.deck.repository.DeckBoardRepository;
 import ru.itmo.wmp.tasks.application.deck.repository.DeckCardRepository;
 import ru.itmo.wmp.tasks.application.repository.TaskRepository;
@@ -44,7 +43,6 @@ public class DeckPushWorker {
         }
     }
 
-    @Transactional
     public void pushSafely(DeckCard card) {
         try {
             pushOne(card);

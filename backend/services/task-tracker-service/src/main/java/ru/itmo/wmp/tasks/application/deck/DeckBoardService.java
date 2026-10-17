@@ -3,7 +3,6 @@ package ru.itmo.wmp.tasks.application.deck;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.tasks.application.deck.repository.DeckBoardRepository;
 import ru.itmo.wmp.tasks.application.deck.repository.DeckStackRepository;
 import ru.itmo.wmp.tasks.domain.TaskStatus;
@@ -37,7 +36,6 @@ public class DeckBoardService {
     private final DeckBoardRepository boardRepository;
     private final DeckStackRepository stackRepository;
 
-    @Transactional
     public DeckBoard ensureBoard(DeckBoard board, String organizationCode) {
         if (board.getDeckBoardId() == null) {
             board.setDeckBoardId(deckGateway.createBoard(board.getTitle()));
@@ -52,7 +50,6 @@ public class DeckBoardService {
         return board;
     }
 
-    @Transactional(readOnly = true)
     public Long stackOf(DeckBoard board, TaskStatus status) {
         return stackRepository.findByBoardRowIdAndStatus(board.getId(), status)
             .map(DeckStack::getDeckStackId)
