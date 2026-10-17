@@ -15,6 +15,11 @@ public class OrganizationMailboxRepositoryAdapter implements OrganizationMailbox
     private final JpaOrganizationMailboxRepository mailboxRepository;
 
     @Override
+    public Optional<OrganizationMailbox> findById(Long id) {
+        return mailboxRepository.findById(id);
+    }
+
+    @Override
     public Optional<OrganizationMailbox> findByOrganizationId(Long organizationId) {
         return mailboxRepository.findByOrganizationId(organizationId);
     }

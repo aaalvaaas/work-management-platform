@@ -75,21 +75,16 @@ public class OrganizationMailboxService {
         mailboxRepository.delete(getByOrganization(organizationId));
     }
 
-    public void recordFailure(Long mailboxId, Long organizationId, String error) {
-        OrganizationMailbox mailbox = getByOrganization(organizationId);
+    public void recordCheck(Long mailboxId, boolean successful, String error) {
+        OrganizationMailbox mailbox = mailboxRepository.findById(mailboxId)
+            .orElseThrow(() -> new MailboxNotFoundException(mailboxId));
 
-        mailbox.setStatus(MailboxStatus.ERROR);
-        mailbox.setLastError(error);
-        mailbox.setLastCheckedAt(LocalDateTime.now());
+        if (mailbox.getStatus() == MailboxStatus.DISABLED) {
+            return;
+        }
 
-        mailboxRepository.save(mailbox);
-    }
-
-    public void recordSuccess(Long organizationId) {
-        OrganizationMailbox mailbox = getByOrganization(organizationId);
-
-        mailbox.setStatus(MailboxStatus.ACTIVE);
-        mailbox.setLastError(null);
+        mailbox.setStatus(successful ? MailboxStatus.ACTIVE : MailboxStatus.ERROR);
+        mailbox.setLastError(successful ? null : error);
         mailbox.setLastCheckedAt(LocalDateTime.now());
 
         mailboxRepository.save(mailbox);

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrganizationMailboxRepository {
+    Optional<OrganizationMailbox> findById(Long id);
+
     Optional<OrganizationMailbox> findByOrganizationId(Long organizationId);
 
     List<OrganizationMailbox> findByStatus(MailboxStatus status);
