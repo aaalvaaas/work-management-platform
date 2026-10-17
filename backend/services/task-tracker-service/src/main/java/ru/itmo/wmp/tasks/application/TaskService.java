@@ -29,7 +29,7 @@ public class TaskService {
         requireAuthorRights(membership, command.blockId());
 
         if (command.blockId() != null) {
-            platformGateway.requireBlockInOrganization(command.organizationId(), command.blockId());
+            platformGateway.blockOf(command.organizationId(), command.blockId());
         }
 
         Task task = new Task();
@@ -87,7 +87,7 @@ public class TaskService {
         requireAuthorRights(membership, task.getBlockId());
 
         if (command.blockId() != null && !Objects.equals(command.blockId(), task.getBlockId())) {
-            platformGateway.requireBlockInOrganization(task.getOrganizationId(), command.blockId());
+            platformGateway.blockOf(task.getOrganizationId(), command.blockId());
 
             task.setBlockId(command.blockId());
         }
