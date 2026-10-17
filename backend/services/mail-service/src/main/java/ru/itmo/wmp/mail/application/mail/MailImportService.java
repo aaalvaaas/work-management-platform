@@ -55,6 +55,8 @@ public class MailImportService {
 
         try {
             mails = imapMailClient.fetchUnread(mailbox);
+
+            mailboxDirectory.reportCheck(mailbox.id(), true, null);
         } catch (RuntimeException exception) {
             log.warn(
                 "Mailbox {} of organization {} could not be read: {}",
@@ -62,6 +64,8 @@ public class MailImportService {
                 mailbox.organizationId(),
                 exception.getMessage()
             );
+
+            mailboxDirectory.reportCheck(mailbox.id(), false, exception.getMessage());
 
             return;
         }

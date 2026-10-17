@@ -1,6 +1,7 @@
 package ru.itmo.wmp.mail.infrastructure.platform;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -16,6 +17,7 @@ import java.util.List;
 public class PlatformMailboxDirectory implements MailboxDirectory {
     private static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
     private static final String MAILBOXES_PATH = "/internal/v1/mailboxes";
+    private static final int ERROR_LIMIT = 500;
 
     private final RestClient restClient;
 
@@ -36,6 +38,24 @@ public class PlatformMailboxDirectory implements MailboxDirectory {
     }
 
     @Override
+    public void reportCheck(Long mailboxId, boolean successful, String error) {
+        try {
+            restClient.post()
+                .uri(MAILBOXES_PATH + "/{mailboxId}/checks", mailboxId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new CheckPayload(successful, shorten(error)))
+                .retrieve()
+                .toBodilessEntity();
+        } catch (RestClientException exception) {
+            log.warn(
+                "Unable to report the state of mailbox {}: {}",
+                mailboxId,
+                exception.getMessage()
+            );
+        }
+    }
+
+    @Override
     public List<MailboxConnection> activeMailboxes() {
         try {
             MailboxConnection[] mailboxes = restClient.get()
@@ -49,5 +69,16 @@ public class PlatformMailboxDirectory implements MailboxDirectory {
 
             return List.of();
         }
+    }
+
+    private String shorten(String error) {
+        if (error == null) {
+            return null;
+        }
+
+        return error.length() <= ERROR_LIMIT ? error : error.substring(0, ERROR_LIMIT);
+    }
+
+    private record CheckPayload(boolean successful, String error) {
     }
 }
