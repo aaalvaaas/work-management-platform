@@ -10,6 +10,7 @@ public record InvitationResponse(
     String email,
     Long organizationId,
     InvitationSource source,
-    LocalDateTime expiresAt
+    LocalDateTime expiresAt,
+    String registrationToken
 ) {
 }

@@ -112,7 +112,8 @@ public class InvitationControllerIntegrationTest {
             .andExpect(jsonPath("$.email").value("i***@niuitmo.ru"))
             .andExpect(jsonPath("$.source").value("MANAGER_INVITE"))
             .andExpect(jsonPath("$.organizationId").value(organization.getId()))
-            .andExpect(jsonPath("$.expiresAt").exists());
+            .andExpect(jsonPath("$.expiresAt").exists())
+            .andExpect(jsonPath("$.registrationToken").exists());
     }
 
     @Test

@@ -38,7 +38,8 @@ public class RegistrationMapper {
             EmailMask.apply(invitation.getEmail()),
             invitation.getOrganization() == null ? null : invitation.getOrganization().getId(),
             invitation.getSource(),
-            invitation.getExpiresAt()
+            invitation.getExpiresAt(),
+            issued.token()
         );
     }
 }

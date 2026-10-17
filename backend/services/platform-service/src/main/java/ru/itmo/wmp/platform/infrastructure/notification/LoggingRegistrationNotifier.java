@@ -2,6 +2,7 @@ package ru.itmo.wmp.platform.infrastructure.notification;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.itmo.wmp.platform.application.notification.RegistrationDecisionNotification;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotification;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotifier;
 
@@ -28,6 +29,18 @@ public class LoggingRegistrationNotifier implements RegistrationNotifier {
             notification.email(),
             notification.token(),
             notification.expiresAt()
+        );
+    }
+
+    @Override
+    public void sendRegistrationDecision(RegistrationDecisionNotification notification) {
+        log.info(
+            "Registration {} for isuNumber={} to={} organization={} comment={}",
+            notification.approved() ? "approved" : "rejected",
+            notification.isuNumber(),
+            notification.email(),
+            notification.organizationName(),
+            notification.comment()
         );
     }
 }

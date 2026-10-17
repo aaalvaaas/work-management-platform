@@ -25,6 +25,9 @@ import ru.itmo.wmp.platform.exception.registration.AlreadyRegisteredException;
 import ru.itmo.wmp.platform.exception.registration.EmailAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.registration.InvitationNotValidException;
 import ru.itmo.wmp.platform.exception.registration.RegistrationNotAllowedException;
+import ru.itmo.wmp.platform.exception.registration.RegistrationRequestAlreadySubmittedException;
+import ru.itmo.wmp.platform.exception.registration.RegistrationRequestNotFoundException;
+import ru.itmo.wmp.platform.exception.registration.RegistrationRequestNotPendingException;
 import ru.itmo.wmp.platform.exception.user.SelfManagementNotAllowedException;
 import ru.itmo.wmp.platform.exception.user.UserNotFoundException;
 
@@ -259,6 +262,48 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.FORBIDDEN,
             ErrorCode.REGISTRATION_NOT_ALLOWED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(RegistrationRequestNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationRequestNotFound(
+        RegistrationRequestNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.REGISTRATION_REQUEST_NOT_FOUND,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(RegistrationRequestNotPendingException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationRequestNotPending(
+        RegistrationRequestNotPendingException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.REGISTRATION_REQUEST_NOT_PENDING,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(RegistrationRequestAlreadySubmittedException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationRequestAlreadySubmitted(
+        RegistrationRequestAlreadySubmittedException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.CONFLICT,
+            ErrorCode.REGISTRATION_REQUEST_ALREADY_SUBMITTED,
             ex.getMessage(),
             request,
             Map.of()

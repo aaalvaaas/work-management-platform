@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Loader } from "../components/Loader";
@@ -72,6 +72,10 @@ export function LoginPage() {
                 <button type="submit" disabled={submitting}>
                     {submitting ? "Входим…" : "Войти"}
                 </button>
+
+                <p className="muted">
+                    Нет аккаунта? <Link to="/register">Подать заявку на регистрацию</Link>
+                </p>
             </form>
         </div>
     );
