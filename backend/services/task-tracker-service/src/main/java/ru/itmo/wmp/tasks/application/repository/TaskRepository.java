@@ -1,6 +1,7 @@
 package ru.itmo.wmp.tasks.application.repository;
 
 import ru.itmo.wmp.tasks.domain.Task;
+import ru.itmo.wmp.tasks.domain.TaskSource;
 import ru.itmo.wmp.tasks.domain.TaskStatus;
 
 import java.util.Collection;
@@ -23,6 +24,8 @@ public interface TaskRepository {
         Long organizationId,
         Long assigneeUserId
     );
+
+    Optional<Task> findBySourceAndSourceReference(TaskSource source, String sourceReference);
 
     Task save(Task task);
 }

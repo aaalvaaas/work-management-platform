@@ -104,6 +104,14 @@ export function TasksPage() {
                                         <span className="tag">требует согласования</span>
                                     )}
 
+                                    {task.source === "MAIL" && (
+                                        <span className="tag">
+                                            из письма{task.requesterEmail
+                                                ? ` · ${task.requesterEmail}`
+                                                : ""}
+                                        </span>
+                                    )}
+
                                     <p className="muted">
                                         {blockName(task) ?? "без блока"}
                                         {task.assigneeIsuNumber

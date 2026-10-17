@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.itmo.wmp.tasks.application.repository.TaskRepository;
 import ru.itmo.wmp.tasks.domain.Task;
+import ru.itmo.wmp.tasks.domain.TaskSource;
 import ru.itmo.wmp.tasks.domain.TaskStatus;
 
 import java.util.Collection;
@@ -50,6 +51,14 @@ public class TaskRepositoryAdapter implements TaskRepository {
             organizationId,
             assigneeUserId
         );
+    }
+
+    @Override
+    public Optional<Task> findBySourceAndSourceReference(
+        TaskSource source,
+        String sourceReference
+    ) {
+        return taskRepository.findBySourceAndSourceReference(source, sourceReference);
     }
 
     @Override
