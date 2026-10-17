@@ -244,6 +244,40 @@ public class OrganizationControllerIntegrationTest {
             .andExpect(status().isForbidden());
     }
 
+    @Test
+    void shouldReportMembershipOfTheManager() throws Exception {
+        Organization organization = organization("megafaculty", "Мегафакультет");
+        User manager = account(MANAGER_ISU);
+
+        participant(organization, manager, MANAGER_ISU);
+
+        mockMvc.perform(asPlatformAdmin(assignManagerRequest(organization.getId(), MANAGER_ISU)))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            asUser(get("/api/v1/organizations/{id}/membership", organization.getId()), manager)
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.member").value(true))
+            .andExpect(jsonPath("$.platformAdmin").value(false))
+            .andExpect(jsonPath("$.roles[0]").value("MANAGER"))
+            .andExpect(jsonPath("$.userId").value(manager.getId()));
+    }
+
+    @Test
+    void shouldReportEmptyMembershipForOutsider() throws Exception {
+        Organization organization = organization("megafaculty", "Мегафакультет");
+        User outsider = account(OUTSIDER_ISU);
+
+        mockMvc.perform(
+            asUser(get("/api/v1/organizations/{id}/membership", organization.getId()), outsider)
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.member").value(false))
+            .andExpect(jsonPath("$.roles").isEmpty())
+            .andExpect(jsonPath("$.blocks").isEmpty());
+    }
+
     private MockHttpServletRequestBuilder createRequest(String code, String name) throws Exception {
         return post("/api/v1/organizations")
             .contentType(MediaType.APPLICATION_JSON)

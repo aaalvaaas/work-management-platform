@@ -10,6 +10,7 @@ import { OrganizationsPage } from "./pages/OrganizationsPage";
 import { BlockPage } from "./pages/BlockPage";
 import { ImportPage } from "./pages/ImportPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { TasksPage } from "./pages/TasksPage";
 
 export function App() {
     return (
@@ -35,6 +36,10 @@ export function App() {
                             <Route
                                 path="/organizations/:organizationId/import"
                                 element={<ImportPage />}
+                            />
+                            <Route
+                                path="/organizations/:organizationId/tasks"
+                                element={<TasksPage />}
                             />
                         </Route>
                     </Route>

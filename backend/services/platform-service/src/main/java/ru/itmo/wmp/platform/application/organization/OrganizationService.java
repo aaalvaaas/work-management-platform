@@ -13,6 +13,7 @@ import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.exception.organization.NotOrganizationParticipantException;
 import ru.itmo.wmp.platform.exception.organization.OrganizationCodeAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.organization.OrganizationNotFoundException;
+import ru.itmo.wmp.platform.exception.organization.ParticipantNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -69,6 +70,14 @@ public class OrganizationService {
         getById(organizationId);
 
         return participantRepository.findByOrganizationId(organizationId);
+    }
+
+    public OrganizationParticipant participantOf(Long organizationId, String isuNumber) {
+        getById(organizationId);
+
+        return participantRepository
+            .findByOrganizationIdAndIsuNumber(organizationId, isuNumber)
+            .orElseThrow(() -> new ParticipantNotFoundException(organizationId, isuNumber));
     }
 
     @Transactional

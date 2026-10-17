@@ -26,6 +26,7 @@ public class GatewayRateLimitIntegrationTest {
     static void gatewayProperties(DynamicPropertyRegistry registry) {
         registry.add("wmp.services.platform-url", DOWNSTREAM::baseUrl);
         registry.add("wmp.services.mail-url", DOWNSTREAM::baseUrl);
+        registry.add("wmp.services.tasks-url", DOWNSTREAM::baseUrl);
         registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri", DOWNSTREAM::jwkSetUri);
         registry.add("wmp.rate-limit.auth.replenish-rate", () -> 1);
         registry.add("wmp.rate-limit.auth.burst-capacity", () -> 1);

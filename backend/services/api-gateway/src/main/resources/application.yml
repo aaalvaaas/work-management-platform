@@ -39,6 +39,17 @@ spring:
                                         redis-rate-limiter.replenishRate: ${wmp.rate-limit.api.replenish-rate}
                                         redis-rate-limiter.burstCapacity: ${wmp.rate-limit.api.burst-capacity}
 
+                        -   id: tasks
+                            uri: ${wmp.services.tasks-url}
+                            predicates:
+                                -   Path=/api/v1/tasks/**
+                            filters:
+                                -   name: RequestRateLimiter
+                                    args:
+                                        key-resolver: "#{@clientKeyResolver}"
+                                        redis-rate-limiter.replenishRate: ${wmp.rate-limit.api.replenish-rate}
+                                        redis-rate-limiter.burstCapacity: ${wmp.rate-limit.api.burst-capacity}
+
                         -   id: mail
                             uri: ${wmp.services.mail-url}
                             predicates:
@@ -60,6 +71,7 @@ wmp:
     services:
         platform-url: ${WMP_PLATFORM_URL:http://localhost:8080}
         mail-url: ${WMP_MAIL_URL:http://localhost:8082}
+        tasks-url: ${WMP_TASKS_URL:http://localhost:8083}
 
     cors:
         allowed-origins: ${WMP_ALLOWED_ORIGINS:http://localhost:5173}

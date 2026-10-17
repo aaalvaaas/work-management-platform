@@ -35,6 +35,7 @@ public class GatewayRoutingIntegrationTest {
     static void gatewayProperties(DynamicPropertyRegistry registry) {
         registry.add("wmp.services.platform-url", DOWNSTREAM::baseUrl);
         registry.add("wmp.services.mail-url", DOWNSTREAM::baseUrl);
+        registry.add("wmp.services.tasks-url", DOWNSTREAM::baseUrl);
         registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri", DOWNSTREAM::jwkSetUri);
         registry.add("wmp.rate-limit.auth.replenish-rate", () -> 1000);
         registry.add("wmp.rate-limit.auth.burst-capacity", () -> 1000);
@@ -136,6 +137,15 @@ public class GatewayRoutingIntegrationTest {
         webTestClient.get()
             .uri("/api/v1/mails")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + TestAccessTokens.accessToken(SIGNING_KEY, "45"))
+            .exchange()
+            .expectStatus().isOk();
+    }
+
+    @Test
+    void shouldRouteTaskRequests() {
+        webTestClient.get()
+            .uri("/api/v1/tasks?organizationId=10")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + TestAccessTokens.accessToken(SIGNING_KEY, "47"))
             .exchange()
             .expectStatus().isOk();
     }

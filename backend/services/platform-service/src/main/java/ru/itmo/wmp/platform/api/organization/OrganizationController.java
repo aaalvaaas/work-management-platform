@@ -10,15 +10,20 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.wmp.platform.api.organization.mapper.OrganizationMapper;
+import ru.itmo.wmp.platform.application.organization.BlockService;
 import ru.itmo.wmp.platform.application.organization.OrganizationService;
 import ru.itmo.wmp.platform.application.organization.ParticipantExclusionService;
 import ru.itmo.wmp.platform.config.security.AccessGuard;
+import ru.itmo.wmp.platform.application.security.UserAuthorization;
+import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
 import ru.itmo.wmp.platform.config.security.JwtPrincipal;
+import ru.itmo.wmp.platform.domain.organization.Block;
 import ru.itmo.wmp.platform.domain.organization.Organization;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.dto.organization.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/organizations")
@@ -28,6 +33,8 @@ public class OrganizationController {
     private final ParticipantExclusionService participantExclusionService;
     private final OrganizationMapper organizationMapper;
     private final AccessGuard accessGuard;
+    private final UserAuthorizationService userAuthorizationService;
+    private final BlockService blockService;
 
     @GetMapping
     @Operation(
@@ -57,6 +64,38 @@ public class OrganizationController {
         @Valid @RequestBody CreateOrganizationRequest request
     ) {
         return toResponse(organizationService.create(request.code(), request.name()));
+    }
+
+    @GetMapping("/{organizationId}/membership")
+    @Operation(
+        summary = "Membership of the current user",
+        description = "Tells what the authenticated user is in this organization: "
+            + "member, its roles and the roles in its blocks"
+    )
+    public OrganizationMembershipResponse membership(
+        @PathVariable Long organizationId,
+        Authentication authentication,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        Long userId = JwtPrincipal.userId(jwt);
+        UserAuthorization authorization = userAuthorizationService.of(userId);
+
+        List<Long> blockIds = blockService.findByOrganization(organizationId)
+            .stream()
+            .map(Block::getId)
+            .toList();
+
+        List<OrganizationMembershipResponse.BlockMembershipResponse> blocks =
+            organizationMapper.toBlockMemberships(blockIds, authorization);
+
+        return new OrganizationMembershipResponse(
+            organizationId,
+            userId,
+            accessGuard.isPlatformAdmin(authentication),
+            authorization.isActiveMemberOf(organizationId),
+            authorization.organizationRoles().getOrDefault(organizationId, Set.of()),
+            blocks
+        );
     }
 
     @GetMapping("/{id}")
@@ -165,6 +204,21 @@ public class OrganizationController {
             .stream()
             .map(organizationMapper::toResponse)
             .toList();
+    }
+
+    @GetMapping("/{id}/participants/{isuNumber}")
+    @PreAuthorize("@accessGuard.isOrganizationMember(#id, authentication)")
+    @Operation(
+        summary = "Find a participant by ISU number",
+        description = "Available to any member of the organization, used when assigning work"
+    )
+    public ParticipantResponse participant(
+        @PathVariable Long id,
+        @PathVariable String isuNumber
+    ) {
+        return organizationMapper.toResponse(
+            organizationService.participantOf(id, isuNumber)
+        );
     }
 
     @DeleteMapping("/{id}/participants/{isuNumber}")
