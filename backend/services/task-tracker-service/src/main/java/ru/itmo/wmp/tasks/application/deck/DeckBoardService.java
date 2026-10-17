@@ -1,6 +1,7 @@
 package ru.itmo.wmp.tasks.application.deck;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.tasks.application.deck.repository.DeckBoardRepository;
@@ -12,6 +13,7 @@ import ru.itmo.wmp.tasks.domain.deck.DeckStack;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeckBoardService {
@@ -62,7 +64,16 @@ public class DeckBoardService {
             ? "wmp-org-" + organizationCode
             : "wmp-block-" + organizationCode + "-" + board.getBlockId();
 
-        deckGateway.shareBoardWithGroup(board.getDeckBoardId(), group);
+        try {
+            deckGateway.shareBoardWithGroup(board.getDeckBoardId(), group);
+        } catch (RuntimeException exception) {
+            log.warn(
+                "Board {} was not shared with group {}: {}",
+                board.getDeckBoardId(),
+                group,
+                exception.getMessage()
+            );
+        }
     }
 
     private void ensureStacks(DeckBoard board) {
