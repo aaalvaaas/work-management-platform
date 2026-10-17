@@ -177,7 +177,8 @@ export interface Task {
     status: TaskStatus;
     requiresApproval: boolean;
     source: TaskSource;
-    authorUserId: number;
+    authorUserId: number | null;
+    requesterEmail: string | null;
     assigneeUserId: number | null;
     assigneeIsuNumber: string | null;
     dueDate: string | null;
