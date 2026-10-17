@@ -15,6 +15,8 @@ import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupGateway;
 import ru.itmo.wmp.platform.config.properties.NextcloudProperties;
 import ru.itmo.wmp.platform.exception.nextcloud.NextcloudException;
 
+import java.util.List;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = "nextcloud", name = "enabled", havingValue = "true")
@@ -54,6 +56,28 @@ public class OcsNextcloudGroupGateway implements NextcloudGroupGateway {
         }
 
         throw failure("create group " + groupId, meta);
+    }
+
+    @Override
+    public List<String> groupsOf(String uid) {
+        try {
+            OcsGroupsResponse response = restClient.get()
+                .uri(USERS_PATH + "/" + uid + "/groups")
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
+                })
+                .body(OcsGroupsResponse.class);
+
+            if (response == null || response.ocs() == null || response.ocs().data() == null) {
+                return List.of();
+            }
+
+            List<String> groups = response.ocs().data().groups();
+
+            return groups == null ? List.of() : groups;
+        } catch (RestClientException exception) {
+            throw new NextcloudException("Nextcloud is not reachable on groups of " + uid, exception);
+        }
     }
 
     @Override

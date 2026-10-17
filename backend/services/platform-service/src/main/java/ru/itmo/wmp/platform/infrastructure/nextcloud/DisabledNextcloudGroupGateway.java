@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupGateway;
 
+import java.util.List;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(
@@ -17,6 +19,11 @@ public class DisabledNextcloudGroupGateway implements NextcloudGroupGateway {
     @Override
     public void ensureGroup(String groupId) {
         log.debug("Nextcloud integration is disabled, skipping group {}", groupId);
+    }
+
+    @Override
+    public List<String> groupsOf(String uid) {
+        return List.of();
     }
 
     @Override
