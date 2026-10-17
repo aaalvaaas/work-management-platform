@@ -21,3 +21,11 @@ app:
 platform:
     base-url: ${WMP_PLATFORM_URL:http://localhost:8080}
     timeout: 3s
+
+deck:
+    enabled: ${DECK_ENABLED:false}
+    base-url: ${NEXTCLOUD_BASE_URL:http://localhost:8081}
+    admin-user: ${NEXTCLOUD_ADMIN_USER:}
+    admin-password: ${NEXTCLOUD_ADMIN_PASSWORD:}
+    timeout: 5s
+    pull-interval: ${DECK_PULL_INTERVAL:60s}
