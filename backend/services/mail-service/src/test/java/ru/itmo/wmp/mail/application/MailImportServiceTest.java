@@ -2,12 +2,15 @@ package ru.itmo.wmp.mail.application;
 
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
+import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
+import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
 import ru.itmo.wmp.mail.application.mail.MailImportResult;
 import ru.itmo.wmp.mail.application.mail.MailImportService;
 import ru.itmo.wmp.mail.domain.MailMessage;
@@ -24,6 +27,18 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class MailImportServiceTest {
+    private static final MailboxConnection MAILBOX = new MailboxConnection(
+        1L,
+        10L,
+        "megafaculty",
+        "imap.mail.ru",
+        993,
+        "megafaculty@mail.ru",
+        "secret",
+        "INBOX",
+        true
+    );
+
     @Mock
     private ImapMailClient imapMailClient;
 
@@ -42,8 +57,16 @@ public class MailImportServiceTest {
     @Mock
     private MailAttachmentService mailAttachmentService;
 
+    @Mock
+    private MailboxDirectory mailboxDirectory;
+
     @InjectMocks
     private MailImportService mailImportService;
+
+    @BeforeEach
+    void stubMailboxes() {
+        when(mailboxDirectory.activeMailboxes()).thenReturn(List.of(MAILBOX));
+    }
 
     @Test
     void shouldImportUnreadMailsSuccessfully() {
@@ -65,7 +88,7 @@ public class MailImportServiceTest {
             List.of()
         );
 
-        when(imapMailClient.fetchUnread())
+        when(imapMailClient.fetchUnread(MAILBOX))
             .thenReturn(List.of(
                 parsedMail1,
                 parsedMail2
@@ -127,7 +150,7 @@ public class MailImportServiceTest {
                 List.of()
             );
 
-        when(imapMailClient.fetchUnread())
+        when(imapMailClient.fetchUnread(MAILBOX))
             .thenReturn(List.of(
                 duplicateParsed,
                 normalParsed
@@ -161,7 +184,7 @@ public class MailImportServiceTest {
 
     @Test
     void shouldReturnEmptyResultWhenNoUnreadMails() {
-        when(imapMailClient.fetchUnread())
+        when(imapMailClient.fetchUnread(MAILBOX))
             .thenReturn(List.of());
 
         MailImportResult result = mailImportService.importUnreadMails();
@@ -170,7 +193,7 @@ public class MailImportServiceTest {
         assertEquals(0, result.skipped());
 
         verify(imapMailClient)
-            .fetchUnread();
+            .fetchUnread(MAILBOX);
 
         verify(mailService, never())
             .receiveMail(any());
@@ -180,14 +203,14 @@ public class MailImportServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenImapFails() {
-        when(imapMailClient.fetchUnread())
+    void shouldSkipMailboxThatCannotBeRead() {
+        when(imapMailClient.fetchUnread(MAILBOX))
             .thenThrow(new MailImportException("IMAP failed", new MessagingException()));
 
-        assertThrows(
-            MailImportException.class,
-            () -> mailImportService.importUnreadMails()
-        );
+        MailImportResult result = mailImportService.importUnreadMails();
+
+        assertEquals(0, result.imported());
+        assertEquals(0, result.skipped());
 
         verify(mailService, never())
             .receiveMail(any());
@@ -210,7 +233,7 @@ public class MailImportServiceTest {
             List.of(attachment1, attachment2)
         );
 
-        when(imapMailClient.fetchUnread())
+        when(imapMailClient.fetchUnread(MAILBOX))
             .thenReturn(List.of(parsedMail));
 
         when(mailService.receiveMail(mail))

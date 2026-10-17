@@ -14,6 +14,7 @@ import ru.itmo.wmp.platform.exception.auth.InvalidTokenException;
 import ru.itmo.wmp.platform.exception.imports.ImportBatchNotFoundException;
 import ru.itmo.wmp.platform.exception.imports.ImportFileException;
 import ru.itmo.wmp.platform.exception.imports.ImportNotApplicableException;
+import ru.itmo.wmp.platform.exception.mailbox.MailboxNotFoundException;
 import ru.itmo.wmp.platform.exception.nextcloud.NextcloudAccountNotFoundException;
 import ru.itmo.wmp.platform.exception.organization.BlockNameAlreadyUsedException;
 import ru.itmo.wmp.platform.exception.organization.BlockNotFoundException;
@@ -262,6 +263,20 @@ public class GlobalExceptionHandler {
         return build(
             HttpStatus.FORBIDDEN,
             ErrorCode.REGISTRATION_NOT_ALLOWED,
+            ex.getMessage(),
+            request,
+            Map.of()
+        );
+    }
+
+    @ExceptionHandler(MailboxNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMailboxNotFound(
+        MailboxNotFoundException ex,
+        HttpServletRequest request
+    ) {
+        return build(
+            HttpStatus.NOT_FOUND,
+            ErrorCode.MAILBOX_NOT_FOUND,
             ex.getMessage(),
             request,
             Map.of()
