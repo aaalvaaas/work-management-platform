@@ -11,6 +11,7 @@ import ru.itmo.wmp.platform.application.organization.repository.BlockMemberRepos
 import ru.itmo.wmp.platform.application.organization.repository.BlockRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
 import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupService;
 import ru.itmo.wmp.platform.application.user.UserService;
 import ru.itmo.wmp.platform.application.user.repository.UserRepository;
 import ru.itmo.wmp.platform.domain.imports.*;
@@ -39,6 +40,7 @@ public class ParticipantImportService {
     private final UserRepository userRepository;
     private final ParticipantExclusionService participantExclusionService;
     private final UserAuthorizationService userAuthorizationService;
+    private final NextcloudGroupService nextcloudGroupService;
 
     public ImportBatch upload(
         Long organizationId,
@@ -208,6 +210,8 @@ public class ParticipantImportService {
         evictParticipant(saved);
 
         syncBlocks(saved, change, blocksByName, actorUserId);
+
+        syncGroups(saved);
     }
 
     private void applyUpdate(
@@ -231,6 +235,12 @@ public class ParticipantImportService {
         evictParticipant(saved);
 
         syncBlocks(saved, change, blocksByName, actorUserId);
+
+        syncGroups(saved);
+    }
+
+    private void syncGroups(OrganizationParticipant participant) {
+        nextcloudGroupService.sync(participant);
     }
 
     private void evictParticipant(OrganizationParticipant participant) {

@@ -8,6 +8,7 @@ import ru.itmo.wmp.platform.application.organization.repository.BlockRoleReposit
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationRoleRepository;
 import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupService;
 import ru.itmo.wmp.platform.domain.organization.BlockRole;
 import ru.itmo.wmp.platform.domain.organization.OrganizationParticipant;
 import ru.itmo.wmp.platform.domain.organization.OrganizationRole;
@@ -27,6 +28,7 @@ public class ParticipantExclusionService {
     private final BlockRoleRepository blockRoleRepository;
     private final OrganizationRoleRepository organizationRoleRepository;
     private final UserAuthorizationService userAuthorizationService;
+    private final NextcloudGroupService nextcloudGroupService;
 
     public OrganizationParticipant exclude(Long organizationId, String isuNumber) {
         OrganizationParticipant participant = participantRepository
@@ -49,6 +51,8 @@ public class ParticipantExclusionService {
 
             userAuthorizationService.evict(user.getId());
         }
+
+        nextcloudGroupService.sync(excluded);
 
         return excluded;
     }

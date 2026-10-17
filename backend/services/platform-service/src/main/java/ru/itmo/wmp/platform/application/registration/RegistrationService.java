@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupService;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotification;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotifier;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
@@ -30,6 +31,7 @@ public class RegistrationService {
     private final OrganizationParticipantRepository participantRepository;
     private final PasswordEncoder passwordEncoder;
     private final NextcloudAccountService nextcloudAccountService;
+    private final NextcloudGroupService nextcloudGroupService;
 
     public RegistrationStart start(String isuNumber) {
         List<OrganizationParticipant> participants = eligibilityService
@@ -94,6 +96,8 @@ public class RegistrationService {
         invitationService.invalidatePendingFor(invitation.getIsuNumber());
 
         nextcloudAccountService.provision(user);
+
+        participants.forEach(nextcloudGroupService::sync);
 
         return user;
     }
