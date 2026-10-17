@@ -11,6 +11,7 @@ public record ParticipantResponse(
     String email,
     String position,
     ParticipantStatus status,
-    boolean registered
+    boolean registered,
+    Long userId
 ) {
 }

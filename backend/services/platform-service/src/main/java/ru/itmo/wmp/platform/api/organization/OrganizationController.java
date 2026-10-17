@@ -206,6 +206,21 @@ public class OrganizationController {
             .toList();
     }
 
+    @GetMapping("/{id}/participants/{isuNumber}")
+    @PreAuthorize("@accessGuard.isOrganizationMember(#id, authentication)")
+    @Operation(
+        summary = "Find a participant by ISU number",
+        description = "Available to any member of the organization, used when assigning work"
+    )
+    public ParticipantResponse participant(
+        @PathVariable Long id,
+        @PathVariable String isuNumber
+    ) {
+        return organizationMapper.toResponse(
+            organizationService.participantOf(id, isuNumber)
+        );
+    }
+
     @DeleteMapping("/{id}/participants/{isuNumber}")
     @PreAuthorize("@accessGuard.isOrganizationAdmin(#id, authentication)")
     @Operation(

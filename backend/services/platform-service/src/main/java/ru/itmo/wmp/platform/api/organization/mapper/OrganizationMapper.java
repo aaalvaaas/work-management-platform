@@ -62,7 +62,8 @@ public class OrganizationMapper {
             participant.getEmail(),
             participant.getPosition(),
             participant.getStatus(),
-            participant.getUser() != null
+            participant.getUser() != null,
+            participant.getUser() == null ? null : participant.getUser().getId()
         );
     }
 }

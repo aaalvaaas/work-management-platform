@@ -1,0 +1,23 @@
+spring:
+    application:
+        name: task-tracker-service
+
+    profiles:
+        active: dev
+
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    jwk-set-uri: ${WMP_JWKS_URI:http://localhost:8080/.well-known/jwks.json}
+                    issuer-uri: ${WMP_JWT_ISSUER:wmp-platform-service}
+
+server:
+    port: 8083
+
+app:
+    version: 0.1.0
+
+platform:
+    base-url: ${WMP_PLATFORM_URL:http://localhost:8080}
+    timeout: 3s
