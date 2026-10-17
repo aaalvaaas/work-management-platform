@@ -115,6 +115,19 @@ public class TaskService {
         return projected(taskRepository.save(task));
     }
 
+    public Task requestDeckSync(Long taskId, Long userId) {
+        Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        OrganizationMembership membership = platformGateway.membershipOf(task.getOrganizationId());
+
+        requireAuthorRights(membership, task.getBlockId());
+
+        deckProjectionService.markPending(task);
+
+        return task;
+    }
+
     public Task changeStatus(Long taskId, TaskStatus target, Long userId) {
         Task task = taskRepository.findById(taskId)
             .orElseThrow(() -> new TaskNotFoundException(taskId));

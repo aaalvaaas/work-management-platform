@@ -20,6 +20,7 @@ public record TaskResponse(
     String assigneeIsuNumber,
     LocalDate dueDate,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    DeckSyncResponse deckSync
 ) {
 }

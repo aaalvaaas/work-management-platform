@@ -111,6 +111,21 @@ public class TaskController {
         );
     }
 
+    @PostMapping("/{taskId}/deck/sync")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @Operation(
+        summary = "Ask for the card in Deck to be synchronized again",
+        description = "Used after a failed projection; the card is pushed by the next run"
+    )
+    public TaskResponse syncWithDeck(
+        @PathVariable Long taskId,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        return taskMapper.toResponse(
+            taskService.requestDeckSync(taskId, JwtPrincipal.userId(jwt))
+        );
+    }
+
     @PostMapping("/{taskId}/status")
     @Operation(
         summary = "Change the status of a task",
