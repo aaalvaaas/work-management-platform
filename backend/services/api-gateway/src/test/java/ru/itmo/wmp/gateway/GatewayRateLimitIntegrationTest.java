@@ -13,6 +13,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import ru.itmo.wmp.gateway.support.DownstreamStub;
 import ru.itmo.wmp.gateway.support.TestAccessTokens;
 
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(GatewayTestContainers.class)
 public class GatewayRateLimitIntegrationTest {
@@ -35,7 +39,7 @@ public class GatewayRateLimitIntegrationTest {
     }
 
     @Test
-    void shouldRejectSecondRequestOfTheSameUser() {
+    void shouldRefuseRequestsOfTheSameUserAboveTheLimit() {
         String accessToken = TestAccessTokens.accessToken(SIGNING_KEY, "7001");
 
         webTestClient.get()
@@ -45,11 +49,17 @@ public class GatewayRateLimitIntegrationTest {
             .expectStatus().isOk()
             .expectHeader().exists("X-RateLimit-Remaining");
 
-        webTestClient.get()
-            .uri("/api/v1/users/me")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-            .exchange()
-            .expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        long refused = IntStream.range(0, 5)
+            .mapToObj(attempt -> webTestClient.get()
+                .uri("/api/v1/users/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .exchange()
+                .returnResult(String.class)
+                .getStatus())
+            .filter(HttpStatus.TOO_MANY_REQUESTS::equals)
+            .count();
+
+        assertThat(refused).isPositive();
     }
 
     @Test

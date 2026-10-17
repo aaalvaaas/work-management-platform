@@ -3,6 +3,7 @@ package ru.itmo.wmp.tasks.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.tasks.application.deck.DeckProjectionService;
 import ru.itmo.wmp.tasks.application.repository.TaskRepository;
 import ru.itmo.wmp.tasks.domain.Task;
 import ru.itmo.wmp.tasks.domain.TaskSource;
@@ -22,6 +23,7 @@ import java.util.Objects;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final PlatformGateway platformGateway;
+    private final DeckProjectionService deckProjectionService;
 
     public Task create(TaskCommand command, Long authorUserId) {
         OrganizationMembership membership = platformGateway.membershipOf(command.organizationId());
@@ -29,7 +31,7 @@ public class TaskService {
         requireAuthorRights(membership, command.blockId());
 
         if (command.blockId() != null) {
-            platformGateway.requireBlockInOrganization(command.organizationId(), command.blockId());
+            platformGateway.blockOf(command.organizationId(), command.blockId());
         }
 
         Task task = new Task();
@@ -46,7 +48,7 @@ public class TaskService {
 
         assign(task, command.assigneeIsuNumber());
 
-        return taskRepository.save(task);
+        return projected(taskRepository.save(task));
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +89,7 @@ public class TaskService {
         requireAuthorRights(membership, task.getBlockId());
 
         if (command.blockId() != null && !Objects.equals(command.blockId(), task.getBlockId())) {
-            platformGateway.requireBlockInOrganization(task.getOrganizationId(), command.blockId());
+            platformGateway.blockOf(task.getOrganizationId(), command.blockId());
 
             task.setBlockId(command.blockId());
         }
@@ -110,7 +112,20 @@ public class TaskService {
 
         task.setRequiresApproval(command.requiresApproval());
 
-        return taskRepository.save(task);
+        return projected(taskRepository.save(task));
+    }
+
+    public Task requestDeckSync(Long taskId, Long userId) {
+        Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        OrganizationMembership membership = platformGateway.membershipOf(task.getOrganizationId());
+
+        requireAuthorRights(membership, task.getBlockId());
+
+        deckProjectionService.markPending(task);
+
+        return task;
     }
 
     public Task changeStatus(Long taskId, TaskStatus target, Long userId) {
@@ -137,7 +152,13 @@ public class TaskService {
 
         task.setStatus(target);
 
-        return taskRepository.save(task);
+        return projected(taskRepository.save(task));
+    }
+
+    private Task projected(Task task) {
+        deckProjectionService.markPending(task);
+
+        return task;
     }
 
     private List<Task> visibleTasks(

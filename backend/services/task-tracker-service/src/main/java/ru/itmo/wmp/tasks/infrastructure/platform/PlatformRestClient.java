@@ -5,7 +5,9 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import ru.itmo.wmp.tasks.application.BlockSummary;
 import ru.itmo.wmp.tasks.application.OrganizationMembership;
+import ru.itmo.wmp.tasks.application.OrganizationSummary;
 import ru.itmo.wmp.tasks.application.ParticipantSummary;
 import ru.itmo.wmp.tasks.application.PlatformGateway;
 import ru.itmo.wmp.tasks.config.properties.PlatformProperties;
@@ -45,13 +47,30 @@ public class PlatformRestClient implements PlatformGateway {
     }
 
     @Override
-    public void requireBlockInOrganization(Long organizationId, Long blockId) {
-        get(
+    public OrganizationSummary organizationOf(Long organizationId) {
+        OrganizationPayload organization = get(
+            "/api/v1/organizations/{organizationId}",
+            OrganizationPayload.class,
+            organizationId
+        );
+
+        return new OrganizationSummary(
+            organization.id(),
+            organization.code(),
+            organization.name()
+        );
+    }
+
+    @Override
+    public BlockSummary blockOf(Long organizationId, Long blockId) {
+        BlockPayload block = get(
             "/api/v1/organizations/{organizationId}/blocks/{blockId}",
             BlockPayload.class,
             organizationId,
             blockId
         );
+
+        return new BlockSummary(block.id(), block.organizationId(), block.name());
     }
 
     @Override
@@ -107,6 +126,9 @@ public class PlatformRestClient implements PlatformGateway {
     }
 
     private record BlockPayload(Long id, Long organizationId, String name, String status) {
+    }
+
+    private record OrganizationPayload(Long id, String code, String name, String status) {
     }
 
     private record ParticipantPayload(

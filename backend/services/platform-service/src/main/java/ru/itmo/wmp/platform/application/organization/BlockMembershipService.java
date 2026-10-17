@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.application.organization.repository.BlockMemberRepository;
 import ru.itmo.wmp.platform.application.organization.repository.OrganizationParticipantRepository;
 import ru.itmo.wmp.platform.application.security.UserAuthorizationService;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupService;
 import ru.itmo.wmp.platform.application.user.UserService;
 import ru.itmo.wmp.platform.domain.organization.Block;
 import ru.itmo.wmp.platform.domain.organization.BlockMember;
@@ -25,6 +26,7 @@ public class BlockMembershipService {
     private final BlockService blockService;
     private final UserService userService;
     private final UserAuthorizationService userAuthorizationService;
+    private final NextcloudGroupService nextcloudGroupService;
 
     public List<BlockMember> membersOf(Long organizationId, Long blockId) {
         blockService.getInOrganization(organizationId, blockId);
@@ -44,17 +46,21 @@ public class BlockMembershipService {
 
         evictParticipant(participant);
 
-        return blockMemberRepository
+        BlockMember member = blockMemberRepository
             .findByBlockIdAndParticipantId(blockId, participant.getId())
             .orElseGet(() -> {
-                BlockMember member = new BlockMember();
+                BlockMember created = new BlockMember();
 
-                member.setBlock(block);
-                member.setParticipant(participant);
-                member.setAddedBy(userService.getById(actorUserId));
+                created.setBlock(block);
+                created.setParticipant(participant);
+                created.setAddedBy(userService.getById(actorUserId));
 
-                return blockMemberRepository.save(member);
+                return blockMemberRepository.save(created);
             });
+
+        nextcloudGroupService.sync(participant);
+
+        return member;
     }
 
     @Transactional
@@ -70,6 +76,8 @@ public class BlockMembershipService {
             .ifPresent(blockMemberRepository::delete);
 
         evictParticipant(participant);
+
+        nextcloudGroupService.sync(participant);
     }
 
     @Transactional

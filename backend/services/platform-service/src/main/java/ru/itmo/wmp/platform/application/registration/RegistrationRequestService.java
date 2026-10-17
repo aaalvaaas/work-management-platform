@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.wmp.platform.application.nextcloud.NextcloudAccountService;
+import ru.itmo.wmp.platform.application.nextcloud.NextcloudGroupService;
 import ru.itmo.wmp.platform.application.notification.RegistrationDecisionNotification;
 import ru.itmo.wmp.platform.application.notification.RegistrationNotifier;
 import ru.itmo.wmp.platform.application.organization.OrganizationService;
@@ -42,6 +43,7 @@ public class RegistrationRequestService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final NextcloudAccountService nextcloudAccountService;
+    private final NextcloudGroupService nextcloudGroupService;
     private final RegistrationNotifier registrationNotifier;
 
     public RegistrationRequest submit(RegistrationSubmission submission) {
@@ -105,7 +107,7 @@ public class RegistrationRequestService {
 
         User user = userRepository.save(accountOf(request));
 
-        linkParticipant(request, user);
+        nextcloudGroupService.sync(linkParticipant(request, user));
 
         decide(request, RegistrationRequestStatus.APPROVED, null, actorUserId);
 
@@ -157,7 +159,7 @@ public class RegistrationRequestService {
         requestRepository.save(request);
     }
 
-    private void linkParticipant(RegistrationRequest request, User user) {
+    private OrganizationParticipant linkParticipant(RegistrationRequest request, User user) {
         OrganizationParticipant participant = participantRepository
             .findByOrganizationIdAndIsuNumber(
                 request.getOrganization().getId(),
@@ -168,7 +170,7 @@ public class RegistrationRequestService {
         participant.setUser(user);
         participant.setStatus(ParticipantStatus.ACTIVE);
 
-        participantRepository.save(participant);
+        return participantRepository.save(participant);
     }
 
     private OrganizationParticipant newParticipant(RegistrationRequest request) {
