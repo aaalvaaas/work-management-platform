@@ -3,6 +3,7 @@ package ru.itmo.wmp.tasks.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.tasks.application.deck.DeckProjectionService;
 import ru.itmo.wmp.tasks.application.repository.TaskRepository;
 import ru.itmo.wmp.tasks.domain.Task;
 import ru.itmo.wmp.tasks.domain.TaskSource;
@@ -22,6 +23,7 @@ import java.util.Objects;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final PlatformGateway platformGateway;
+    private final DeckProjectionService deckProjectionService;
 
     public Task create(TaskCommand command, Long authorUserId) {
         OrganizationMembership membership = platformGateway.membershipOf(command.organizationId());
@@ -46,7 +48,7 @@ public class TaskService {
 
         assign(task, command.assigneeIsuNumber());
 
-        return taskRepository.save(task);
+        return projected(taskRepository.save(task));
     }
 
     @Transactional(readOnly = true)
@@ -110,7 +112,7 @@ public class TaskService {
 
         task.setRequiresApproval(command.requiresApproval());
 
-        return taskRepository.save(task);
+        return projected(taskRepository.save(task));
     }
 
     public Task changeStatus(Long taskId, TaskStatus target, Long userId) {
@@ -137,7 +139,13 @@ public class TaskService {
 
         task.setStatus(target);
 
-        return taskRepository.save(task);
+        return projected(taskRepository.save(task));
+    }
+
+    private Task projected(Task task) {
+        deckProjectionService.markPending(task);
+
+        return task;
     }
 
     private List<Task> visibleTasks(
