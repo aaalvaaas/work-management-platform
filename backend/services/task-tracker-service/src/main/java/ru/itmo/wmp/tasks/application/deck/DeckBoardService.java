@@ -36,11 +36,13 @@ public class DeckBoardService {
     private final DeckStackRepository stackRepository;
 
     @Transactional
-    public DeckBoard ensureBoard(DeckBoard board) {
+    public DeckBoard ensureBoard(DeckBoard board, String organizationCode) {
         if (board.getDeckBoardId() == null) {
             board.setDeckBoardId(deckGateway.createBoard(board.getTitle()));
 
             boardRepository.save(board);
+
+            shareWithGroup(board, organizationCode);
         }
 
         ensureStacks(board);
@@ -53,6 +55,14 @@ public class DeckBoardService {
         return stackRepository.findByBoardRowIdAndStatus(board.getId(), status)
             .map(DeckStack::getDeckStackId)
             .orElse(null);
+    }
+
+    private void shareWithGroup(DeckBoard board, String organizationCode) {
+        String group = board.getBlockId() == null
+            ? "wmp-org-" + organizationCode
+            : "wmp-block-" + organizationCode + "-" + board.getBlockId();
+
+        deckGateway.shareBoardWithGroup(board.getDeckBoardId(), group);
     }
 
     private void ensureStacks(DeckBoard board) {

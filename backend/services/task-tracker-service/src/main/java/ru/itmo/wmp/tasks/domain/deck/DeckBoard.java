@@ -34,6 +34,9 @@ public class DeckBoard {
     private String title;
 
     @Column(nullable = false)
+    private String organizationCode;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

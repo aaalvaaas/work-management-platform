@@ -64,6 +64,7 @@ public class DeckProjectionService {
         board.setOrganizationId(task.getOrganizationId());
         board.setBlockId(task.getBlockId());
         board.setTitle(boardTitle(organization, task));
+        board.setOrganizationCode(organization.code());
 
         return board;
     }

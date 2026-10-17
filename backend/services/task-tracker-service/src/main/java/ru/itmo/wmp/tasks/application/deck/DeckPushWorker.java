@@ -69,7 +69,8 @@ public class DeckPushWorker {
             return;
         }
 
-        DeckBoard board = boardService.ensureBoard(board(task));
+        DeckBoard boardRow = board(task);
+        DeckBoard board = boardService.ensureBoard(boardRow, boardRow.getOrganizationCode());
         Long targetStack = boardService.stackOf(board, task.getStatus());
 
         DeckCardContent content = new DeckCardContent(
