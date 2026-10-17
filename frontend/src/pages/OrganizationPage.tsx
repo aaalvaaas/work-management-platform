@@ -14,6 +14,7 @@ import {
 import { createBlock, listBlocks } from "../api/blocks";
 import { useAuth } from "../auth/AuthContext";
 import { ErrorMessage } from "../components/ErrorMessage";
+import { OrganizationMailbox } from "../components/OrganizationMailbox";
 import { RegistrationRequests } from "../components/RegistrationRequests";
 import { Loader } from "../components/Loader";
 import { useResource } from "../components/useResource";
@@ -252,6 +253,8 @@ export function OrganizationPage() {
             </section>
 
             <RegistrationRequests organizationId={id} onDecision={participants.reload} />
+
+            <OrganizationMailbox organizationId={id} />
 
             <section className="card">
                 <h2>Участники</h2>

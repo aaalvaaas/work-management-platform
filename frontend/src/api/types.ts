@@ -194,3 +194,27 @@ export interface NewTask {
     dueDate: string | null;
     requiresApproval: boolean;
 }
+
+export type MailboxStatus = "ACTIVE" | "DISABLED" | "ERROR";
+
+export interface Mailbox {
+    id: number;
+    organizationId: number;
+    host: string;
+    port: number;
+    username: string;
+    folder: string;
+    useSsl: boolean;
+    status: MailboxStatus;
+    lastError: string | null;
+    lastCheckedAt: string | null;
+}
+
+export interface MailboxSettings {
+    host: string;
+    port: number;
+    username: string;
+    password: string;
+    folder: string;
+    useSsl: boolean;
+}
