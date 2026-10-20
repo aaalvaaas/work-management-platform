@@ -5,6 +5,9 @@ spring:
     profiles:
         active: dev
 
+    kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
 server:
     port: 8082
 
@@ -19,3 +22,8 @@ mail:
 
 app:
     version: 0.1.0
+
+wmp:
+    events:
+        mail-parsed-topic: ${WMP_MAIL_PARSED_TOPIC:wmp.mail.parsed}
+        partitions: 3

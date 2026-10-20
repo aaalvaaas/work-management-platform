@@ -11,7 +11,10 @@ public final class MailStatusTransition {
             case PROCESSING ->
                 to == MailProcessingStatus.PROCESSED || to == MailProcessingStatus.FAILED;
 
-            case PROCESSED, FAILED ->
+            case FAILED ->
+                to == MailProcessingStatus.PROCESSING;
+
+            case PROCESSED ->
                 false;
         };
     }

@@ -27,6 +27,13 @@ public class MailStatusTransitionTest {
                 MailProcessingStatus.FAILED
             )
         );
+
+        assertTrue(
+            MailStatusTransition.canMove(
+                MailProcessingStatus.FAILED,
+                MailProcessingStatus.PROCESSING
+            )
+        );
     }
 
     @Test

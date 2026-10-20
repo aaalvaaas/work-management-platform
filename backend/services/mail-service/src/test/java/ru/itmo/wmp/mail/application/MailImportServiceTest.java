@@ -14,6 +14,7 @@ import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
 import ru.itmo.wmp.mail.application.mail.MailImportResult;
 import ru.itmo.wmp.mail.application.mail.MailImportService;
 import ru.itmo.wmp.mail.domain.MailMessage;
+import ru.itmo.wmp.mail.domain.MailProcessingStatus;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.exception.MailImportException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
@@ -160,6 +161,13 @@ public class MailImportServiceTest {
             .when(mailService)
             .receiveMail(duplicateMail);
 
+        MailMessage stored = new MailMessage();
+        stored.setMessageId("test-001");
+        stored.setProcessingStatus(MailProcessingStatus.PROCESSED);
+
+        when(mailService.getMail("test-001"))
+            .thenReturn(stored);
+
         MailImportResult result =
             mailImportService.importUnreadMails();
 
@@ -217,6 +225,72 @@ public class MailImportServiceTest {
 
         verify(imapMailClient, never())
             .markAsRead(any());
+    }
+
+    @Test
+    void shouldProcessAgainAMailThatFailedEarlier() {
+        MailMessage mail = new MailMessage();
+        mail.setMessageId("test-001");
+
+        MailMessage stored = new MailMessage();
+        stored.setMessageId("test-001");
+        stored.setProcessingStatus(MailProcessingStatus.FAILED);
+
+        when(imapMailClient.fetchUnread(MAILBOX))
+            .thenReturn(List.of(new ParsedMail(sourceMessage1, mail, List.of())));
+
+        doThrow(new DuplicateMailException("test-001"))
+            .when(mailService)
+            .receiveMail(mail);
+
+        when(mailService.getMail("test-001"))
+            .thenReturn(stored);
+
+        MailImportResult result = mailImportService.importUnreadMails();
+
+        assertEquals(1, result.imported());
+        assertEquals(0, result.skipped());
+
+        verify(mailProcessor)
+            .process(stored);
+
+        verify(imapMailClient)
+            .markAsRead(sourceMessage1);
+    }
+
+    @Test
+    void shouldKeepImportingWhenOneMailCannotBeProcessed() {
+        MailMessage failing = new MailMessage();
+        failing.setMessageId("test-001");
+
+        MailMessage normal = new MailMessage();
+        normal.setMessageId("test-002");
+
+        when(imapMailClient.fetchUnread(MAILBOX))
+            .thenReturn(List.of(
+                new ParsedMail(sourceMessage1, failing, List.of()),
+                new ParsedMail(sourceMessage2, normal, List.of())
+            ));
+
+        when(mailService.receiveMail(failing))
+            .thenReturn(failing);
+
+        when(mailService.receiveMail(normal))
+            .thenReturn(normal);
+
+        doThrow(new RuntimeException("Broker is down"))
+            .when(mailProcessor)
+            .process(failing);
+
+        MailImportResult result = mailImportService.importUnreadMails();
+
+        assertEquals(1, result.imported());
+
+        verify(imapMailClient, never())
+            .markAsRead(sourceMessage1);
+
+        verify(imapMailClient)
+            .markAsRead(sourceMessage2);
     }
 
     @Test

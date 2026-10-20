@@ -23,6 +23,7 @@ const TASKS = [
         requiresApproval: false,
         source: "MANUAL",
         authorUserId: 100,
+        requesterEmail: null,
         assigneeUserId: 300,
         assigneeIsuNumber: "465824",
         dueDate: "2026-10-30",
@@ -38,7 +39,8 @@ const TASKS = [
         status: "ON_APPROVAL",
         requiresApproval: true,
         source: "MAIL",
-        authorUserId: 100,
+        authorUserId: null,
+        requesterEmail: "ivanov@niuitmo.ru",
         assigneeUserId: null,
         assigneeIsuNumber: null,
         dueDate: null,
@@ -116,6 +118,16 @@ describe("tasks page", () => {
 
         expect(await screen.findByText(/Разработка · 465824 · до 2026-10-30/)).toBeInTheDocument();
         expect(screen.getByText(/без блока · без исполнителя/)).toBeInTheDocument();
+    });
+
+    it("marks a task that came from a mail", async () => {
+        stub();
+
+        renderPage();
+
+        expect(
+            await screen.findByText(/из письма · ivanov@niuitmo.ru/)
+        ).toBeInTheDocument();
     });
 
     it("creates a task with the entered values", async () => {

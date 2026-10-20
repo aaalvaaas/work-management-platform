@@ -19,13 +19,17 @@ import ru.itmo.wmp.tasks.exception.TaskValidationException;
 @Component
 public class PlatformRestClient implements PlatformGateway {
     private static final String BEARER = "Bearer ";
+    private static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
 
     private final RestClient restClient;
+    private final String internalKey;
 
     public PlatformRestClient(
         PlatformProperties platformProperties,
         RestClient.Builder restClientBuilder
     ) {
+        this.internalKey = platformProperties.internalKey();
+
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
 
         requestFactory.setConnectTimeout(platformProperties.timeout());
@@ -48,11 +52,13 @@ public class PlatformRestClient implements PlatformGateway {
 
     @Override
     public OrganizationSummary organizationOf(Long organizationId) {
-        OrganizationPayload organization = get(
-            "/api/v1/organizations/{organizationId}",
-            OrganizationPayload.class,
-            organizationId
-        );
+        OrganizationPayload organization = JwtPrincipal.currentToken().isPresent()
+            ? get("/api/v1/organizations/{organizationId}", OrganizationPayload.class, organizationId)
+            : getInternal(
+                "/internal/v1/organizations/{organizationId}",
+                OrganizationPayload.class,
+                organizationId
+            );
 
         return new OrganizationSummary(
             organization.id(),
@@ -100,6 +106,23 @@ public class PlatformRestClient implements PlatformGateway {
             return restClient.get()
                 .uri(path, variables)
                 .header(HttpHeaders.AUTHORIZATION, BEARER + token())
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                    throw clientError(response.getStatusCode(), path);
+                })
+                .body(type);
+        } catch (TaskAccessDeniedException | TaskValidationException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new PlatformUnavailableException(path, exception);
+        }
+    }
+
+    private <T> T getInternal(String path, Class<T> type, Object... variables) {
+        try {
+            return restClient.get()
+                .uri(path, variables)
+                .header(INTERNAL_TOKEN_HEADER, internalKey)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
                     throw clientError(response.getStatusCode(), path);

@@ -5,6 +5,13 @@ spring:
     profiles:
         active: dev
 
+    kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+        consumer:
+            auto-offset-reset: earliest
+            enable-auto-commit: false
+
     security:
         oauth2:
             resourceserver:
@@ -20,6 +27,7 @@ app:
 
 platform:
     base-url: ${WMP_PLATFORM_URL:http://localhost:8080}
+    internal-key: ${INTERNAL_API_KEY:local-internal-key-change-me}
     timeout: 3s
 
 deck:
@@ -30,3 +38,8 @@ deck:
     timeout: 5s
     push-interval: ${DECK_PUSH_INTERVAL:5s}
     pull-interval: ${DECK_PULL_INTERVAL:60s}
+
+wmp:
+    events:
+        mail-parsed-topic: ${WMP_MAIL_PARSED_TOPIC:wmp.mail.parsed}
+        group-id: task-tracker
