@@ -3,6 +3,7 @@ package ru.itmo.wmp.mail.infrastructure.imap;
 import jakarta.mail.*;
 import jakarta.mail.search.FlagTerm;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
 import ru.itmo.wmp.mail.exception.MailImportException;
@@ -10,8 +11,10 @@ import ru.itmo.wmp.mail.exception.MailImportException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ImapMailClient {
@@ -48,18 +51,23 @@ public class ImapMailClient {
             List<Message> messages = getUnreadMessages(mailbox);
 
             return messages.stream()
-                .map(message -> {
-                    try {
-                        return mailParser.parse(message);
-                    } catch (MessagingException | IOException e) {
-                        throw new MailImportException("Failed to parse mail", e);
-                    }
-                })
+                .map(this::parseOrSkip)
+                .filter(Objects::nonNull)
                 .toList();
         } catch (MessagingException e) {
             throw new MailImportException("Failed to fetch unread mails", e);
         }
 
+    }
+
+    private ParsedMail parseOrSkip(Message message) {
+        try {
+            return mailParser.parse(message);
+        } catch (MessagingException | IOException | RuntimeException exception) {
+            log.warn("Mail is skipped, it cannot be parsed: {}", exception.getMessage());
+
+            return null;
+        }
     }
 
     static Properties sessionProperties(MailboxConnection mailbox) {
