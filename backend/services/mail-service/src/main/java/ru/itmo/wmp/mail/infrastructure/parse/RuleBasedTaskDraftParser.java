@@ -17,6 +17,9 @@ public class RuleBasedTaskDraftParser implements TaskDraftParser {
         Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
 
+    private static final String NAME = "RULES";
+    private static final String VERSION = "v1";
+
     private static final int MAX_TITLE_LENGTH = 255;
     private static final int MAX_DESCRIPTION_LENGTH = 8000;
 
@@ -30,6 +33,16 @@ public class RuleBasedTaskDraftParser implements TaskDraftParser {
             requiresApproval(subject),
             mail.getSenderEmail()
         );
+    }
+
+    @Override
+    public String name() {
+        return NAME;
+    }
+
+    @Override
+    public String version() {
+        return VERSION;
     }
 
     private boolean requiresApproval(String subject) {
