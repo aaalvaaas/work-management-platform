@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.itmo.wmp.mail.application.archive.ArchivedMail;
+import ru.itmo.wmp.mail.application.archive.MailArchive;
 import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
 import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
@@ -22,6 +24,8 @@ import ru.itmo.wmp.mail.infrastructure.imap.ParsedAttachment;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
 
 import java.util.List;
+
+import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -60,6 +64,9 @@ public class MailImportServiceTest {
 
     @Mock
     private MailboxDirectory mailboxDirectory;
+
+    @Mock
+    private MailArchive mailArchive;
 
     @InjectMocks
     private MailImportService mailImportService;
@@ -130,6 +137,52 @@ public class MailImportServiceTest {
     }
 
     @Test
+    void shouldArchiveEveryImportedMail() {
+        MailMessage mail = new MailMessage();
+        mail.setMessageId("test-001");
+        mail.setSubject("СОГЛАСОВАНИЕ: закупка");
+
+        when(imapMailClient.fetchUnread(MAILBOX))
+            .thenReturn(List.of(new ParsedMail(sourceMessage1, mail, List.of())));
+
+        when(mailService.receiveMail(mail))
+            .thenReturn(mail);
+
+        mailImportService.importUnreadMails();
+
+        ArgumentCaptor<ArchivedMail> captor = ArgumentCaptor.forClass(ArchivedMail.class);
+
+        verify(mailArchive).store(captor.capture());
+
+        assertEquals("test-001", captor.getValue().messageId());
+        assertEquals("СОГЛАСОВАНИЕ: закупка", captor.getValue().subject());
+    }
+
+    @Test
+    void shouldImportMailEvenWhenArchivingFails() {
+        MailMessage mail = new MailMessage();
+        mail.setMessageId("test-001");
+
+        when(imapMailClient.fetchUnread(MAILBOX))
+            .thenReturn(List.of(new ParsedMail(sourceMessage1, mail, List.of())));
+
+        when(mailService.receiveMail(mail))
+            .thenReturn(mail);
+
+        doThrow(new RuntimeException("Mongo is down"))
+            .when(mailArchive)
+            .store(any());
+
+        MailImportResult result = mailImportService.importUnreadMails();
+
+        assertEquals(1, result.imported());
+
+        verify(mailProcessor).process(mail);
+
+        verify(imapMailClient).markAsRead(sourceMessage1);
+    }
+
+    @Test
     void shouldSkipDuplicateMails() {
         MailMessage duplicateMail = new MailMessage();
         duplicateMail.setMessageId("test-001");
@@ -160,6 +213,9 @@ public class MailImportServiceTest {
         doThrow(new DuplicateMailException("test-001"))
             .when(mailService)
             .receiveMail(duplicateMail);
+
+        when(mailService.receiveMail(normalMail))
+            .thenReturn(normalMail);
 
         MailMessage stored = new MailMessage();
         stored.setMessageId("test-001");

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -18,6 +19,12 @@ public class IntegrationTestContainers {
     @ServiceConnection
     PostgreSQLContainer<?> postgresContainer() {
         return new PostgreSQLContainer<>("postgres:17");
+    }
+
+    @Bean
+    @ServiceConnection
+    MongoDBContainer mongoContainer() {
+        return new MongoDBContainer("mongo:8.0");
     }
 
     @Bean

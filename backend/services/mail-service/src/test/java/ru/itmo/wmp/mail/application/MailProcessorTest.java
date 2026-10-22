@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.itmo.wmp.mail.application.archive.MailParseArchive;
+import ru.itmo.wmp.mail.application.archive.ParseRecord;
 import ru.itmo.wmp.mail.application.event.MailEventPublisher;
 import ru.itmo.wmp.mail.application.event.MailParsedEvent;
 import ru.itmo.wmp.mail.application.parse.TaskDraft;
@@ -26,6 +28,9 @@ public class MailProcessorTest {
 
     @Mock
     private MailEventPublisher mailEventPublisher;
+
+    @Mock
+    private MailParseArchive mailParseArchive;
 
     @InjectMocks
     private MailProcessor mailProcessor;
@@ -68,6 +73,47 @@ public class MailProcessorTest {
         assertEquals("Нужны ноутбуки", event.description());
         assertEquals("ivanov@niuitmo.ru", event.requesterEmail());
         assertTrue(event.requiresApproval());
+    }
+
+    @Test
+    void shouldStoreWhatTheParserFoundBeforePublishing() {
+        MailMessage mail = mail();
+
+        when(taskDraftParser.parse(mail)).thenReturn(draft());
+        when(taskDraftParser.name()).thenReturn("RULES");
+        when(taskDraftParser.version()).thenReturn("v1");
+
+        mailProcessor.process(mail);
+
+        ArgumentCaptor<ParseRecord> captor = ArgumentCaptor.forClass(ParseRecord.class);
+
+        verify(mailParseArchive).record(captor.capture());
+
+        ParseRecord stored = captor.getValue();
+
+        assertEquals("test-001", stored.messageId());
+        assertEquals("RULES", stored.parser());
+        assertEquals("v1", stored.parserVersion());
+        assertEquals("Закупка", stored.title());
+        assertTrue(stored.requiresApproval());
+        assertEquals("СОГЛАСОВАНИЕ: закупка", stored.details().get("subject"));
+    }
+
+    @Test
+    void shouldPublishEvenWhenTheParseResultCannotBeStored() {
+        MailMessage mail = mail();
+
+        when(taskDraftParser.parse(mail)).thenReturn(draft());
+
+        doThrow(new RuntimeException("Mongo is down"))
+            .when(mailParseArchive)
+            .record(any());
+
+        mailProcessor.process(mail);
+
+        verify(mailEventPublisher).publishParsed(any());
+
+        verify(mailService).markAsProcessed(mail.getMessageId());
     }
 
     @Test
