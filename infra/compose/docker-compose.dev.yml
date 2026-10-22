@@ -69,6 +69,36 @@ services:
         networks:
             -   wmp-network
 
+    mongo:
+        image: mongo:8.0
+
+        container_name: wmp-mongo
+
+        restart: unless-stopped
+
+        env_file:
+            -   .env
+
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+        ports:
+            -   "27017:27017"
+
+        volumes:
+            -   mongo-data:/data/db
+
+        healthcheck:
+            test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })' > /dev/null 2>&1"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
+        networks:
+            -   wmp-network
+
     kafka:
         image: apache/kafka:3.9.1
 
@@ -149,6 +179,8 @@ volumes:
     seaweedfs-data:
 
     kafka-data:
+
+    mongo-data:
 
     nextcloud-data:
 
