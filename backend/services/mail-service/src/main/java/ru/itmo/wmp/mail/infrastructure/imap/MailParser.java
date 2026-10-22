@@ -32,7 +32,14 @@ public class MailParser {
         mail.setSenderEmail(getSenderEmail(message));
         mail.setRecipientEmail(getRecipientEmail(message));
         mail.setSubject(getSubject(message));
-        mail.setPlainTextBody(getBody(message));
+
+        RawMailContent rawContent = new RawMailContent(
+            headersOf(message),
+            getBody(message),
+            getHtmlBody(message)
+        );
+
+        mail.setPlainTextBody(rawContent.textBody());
 
         List<ParsedAttachment> attachments = attachmentExtractor.extract(message);
 
@@ -40,15 +47,7 @@ public class MailParser {
             message,
             mail,
             attachments,
-            rawContent(message)
-        );
-    }
-
-    private RawMailContent rawContent(Message message) throws MessagingException {
-        return new RawMailContent(
-            headersOf(message),
-            getBody(message),
-            getHtmlBody(message)
+            rawContent
         );
     }
 
