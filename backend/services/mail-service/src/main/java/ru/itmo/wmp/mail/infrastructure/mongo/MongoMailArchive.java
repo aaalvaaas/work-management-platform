@@ -7,9 +7,11 @@ import ru.itmo.wmp.mail.application.archive.ArchivedMail;
 import ru.itmo.wmp.mail.application.archive.MailArchive;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -36,13 +38,24 @@ public class MongoMailArchive implements MailArchive {
         document.setRecipientEmail(mail.recipientEmail());
         document.setSubject(mail.subject());
         document.setReceivedAt(mail.receivedAt());
-        document.setHeaders(mail.headers());
+        document.setHeaders(safeKeys(mail.headers()));
         document.setTextBody(mail.textBody());
         document.setHtmlBody(mail.htmlBody());
         document.setAttachments(mail.attachments().stream().map(this::toAttachment).toList());
         document.setStoredAt(LocalDateTime.now());
 
         return document;
+    }
+
+    private Map<String, List<String>> safeKeys(Map<String, List<String>> headers) {
+        return headers.entrySet()
+            .stream()
+            .collect(Collectors.toMap(
+                entry -> entry.getKey().replace('.', '_').replace('$', '_'),
+                Map.Entry::getValue,
+                (first, second) -> first,
+                LinkedHashMap::new
+            ));
     }
 
     private MailDocument.Attachment toAttachment(ArchivedAttachment attachment) {

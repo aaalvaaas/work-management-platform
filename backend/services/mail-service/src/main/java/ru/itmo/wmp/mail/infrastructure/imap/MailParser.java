@@ -9,9 +9,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.itmo.wmp.mail.domain.MailMessage;
 
+import jakarta.mail.Header;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -33,8 +39,41 @@ public class MailParser {
         return new ParsedMail(
             message,
             mail,
-            attachments
+            attachments,
+            rawContent(message)
         );
+    }
+
+    private RawMailContent rawContent(Message message) throws MessagingException {
+        return new RawMailContent(
+            headersOf(message),
+            getBody(message),
+            getHtmlBody(message)
+        );
+    }
+
+    private Map<String, List<String>> headersOf(Message message) throws MessagingException {
+        Map<String, List<String>> headers = new LinkedHashMap<>();
+
+        Enumeration<Header> all = message.getAllHeaders();
+
+        while (all.hasMoreElements()) {
+            Header header = all.nextElement();
+
+            headers
+                .computeIfAbsent(header.getName().toLowerCase(), key -> new ArrayList<>())
+                .add(decodeMimeText(header.getValue()));
+        }
+
+        return headers;
+    }
+
+    private String getHtmlBody(Message message) throws MessagingException {
+        try {
+            return contentExtractor.extractHtml(message);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private String getMessageId(Message message) throws MessagingException {

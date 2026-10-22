@@ -10,6 +10,22 @@ import java.io.IOException;
 
 @Component
 public class MailContentExtractor {
+    public String extractHtml(Part part) throws MessagingException, IOException {
+        if (part.isMimeType("text/html")) return part.getContent().toString();
+
+        if (part.isMimeType("multipart/*")) {
+            Multipart multipart = (Multipart) part.getContent();
+
+            for (int i = 0; i < multipart.getCount(); i++) {
+                String result = extractHtml(multipart.getBodyPart(i));
+
+                if (!result.isBlank()) return result;
+            }
+        }
+
+        return "";
+    }
+
     public String extractText(Part part) throws MessagingException, IOException {
         if (part.isMimeType("text/plain") || part.isMimeType("text/html")) return part.getContent().toString();
 

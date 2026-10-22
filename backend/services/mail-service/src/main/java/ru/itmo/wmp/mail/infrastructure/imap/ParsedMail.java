@@ -8,6 +8,14 @@ import java.util.List;
 public record ParsedMail(
     Message sourceMessage,
     MailMessage mailMessage,
-    List<ParsedAttachment> attachments
+    List<ParsedAttachment> attachments,
+    RawMailContent rawContent
 ) {
+    public ParsedMail(
+        Message sourceMessage,
+        MailMessage mailMessage,
+        List<ParsedAttachment> attachments
+    ) {
+        this(sourceMessage, mailMessage, attachments, RawMailContent.empty());
+    }
 }
