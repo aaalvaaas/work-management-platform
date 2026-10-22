@@ -5,14 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.itmo.wmp.mail.application.MailProcessor;
 import ru.itmo.wmp.mail.application.MailService;
+import ru.itmo.wmp.mail.application.archive.ArchivedAttachment;
+import ru.itmo.wmp.mail.application.archive.ArchivedMail;
+import ru.itmo.wmp.mail.application.archive.MailArchive;
 import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.application.mailbox.MailboxConnection;
 import ru.itmo.wmp.mail.application.mailbox.MailboxDirectory;
+import ru.itmo.wmp.mail.domain.MailAttachment;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.domain.MailProcessingStatus;
 import ru.itmo.wmp.mail.exception.DuplicateMailException;
 import ru.itmo.wmp.mail.infrastructure.imap.ImapMailClient;
 import ru.itmo.wmp.mail.infrastructure.imap.ParsedMail;
+import ru.itmo.wmp.mail.infrastructure.imap.RawMailContent;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +31,7 @@ public class MailImportService {
     private final MailProcessor mailProcessor;
     private final MailAttachmentService mailAttachmentService;
     private final MailboxDirectory mailboxDirectory;
+    private final MailArchive mailArchive;
 
     public MailImportResult importUnreadMails() {
         AtomicInteger imported = new AtomicInteger();
@@ -78,7 +84,12 @@ public class MailImportService {
 
                 MailMessage savedMail = mailService.receiveMail(parsedMail.mailMessage());
 
-                parsedMail.attachments().forEach(attachment -> mailAttachmentService.save(savedMail, attachment));
+                List<MailAttachment> attachments = parsedMail.attachments()
+                    .stream()
+                    .map(attachment -> mailAttachmentService.save(savedMail, attachment))
+                    .toList();
+
+                archive(savedMail, parsedMail.rawContent(), attachments);
 
                 mailProcessor.process(savedMail);
                 imapMailClient.markAsRead(parsedMail.sourceMessage());
@@ -100,6 +111,41 @@ public class MailImportService {
                 );
             }
         });
+    }
+
+    private void archive(
+        MailMessage mail,
+        RawMailContent rawContent,
+        List<MailAttachment> attachments
+    ) {
+        try {
+            mailArchive.store(new ArchivedMail(
+                mail.getMessageId(),
+                mail.getOrganizationId(),
+                mail.getMailboxId(),
+                mail.getSenderEmail(),
+                mail.getRecipientEmail(),
+                mail.getSubject(),
+                mail.getReceivedAt(),
+                rawContent.headers(),
+                rawContent.textBody(),
+                rawContent.htmlBody(),
+                attachments.stream()
+                    .map(attachment -> new ArchivedAttachment(
+                        attachment.getFilename(),
+                        attachment.getContentType(),
+                        attachment.getSize(),
+                        attachment.getStorageKey()
+                    ))
+                    .toList()
+            ));
+        } catch (RuntimeException exception) {
+            log.warn(
+                "Mail {} is not archived: {}",
+                mail.getMessageId(),
+                exception.getMessage()
+            );
+        }
     }
 
     private void retryOrSkip(
