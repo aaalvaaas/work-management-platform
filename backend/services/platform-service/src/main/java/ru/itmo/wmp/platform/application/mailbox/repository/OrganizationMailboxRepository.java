@@ -11,7 +11,7 @@ public interface OrganizationMailboxRepository {
 
     Optional<OrganizationMailbox> findByOrganizationId(Long organizationId);
 
-    List<OrganizationMailbox> findByStatus(MailboxStatus status);
+    List<OrganizationMailbox> findByStatusIn(List<MailboxStatus> statuses);
 
     OrganizationMailbox save(OrganizationMailbox mailbox);
 

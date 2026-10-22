@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface JpaOrganizationMailboxRepository extends JpaRepository<OrganizationMailbox, Long> {
     Optional<OrganizationMailbox> findByOrganizationId(Long organizationId);
 
-    List<OrganizationMailbox> findByStatus(MailboxStatus status);
+    List<OrganizationMailbox> findByStatusIn(List<MailboxStatus> statuses);
 }

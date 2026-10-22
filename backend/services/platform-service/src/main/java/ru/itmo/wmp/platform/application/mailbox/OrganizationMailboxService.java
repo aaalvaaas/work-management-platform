@@ -55,7 +55,9 @@ public class OrganizationMailboxService {
 
     @Transactional(readOnly = true)
     public List<OrganizationMailbox> activeMailboxes() {
-        return mailboxRepository.findByStatus(MailboxStatus.ACTIVE);
+        return mailboxRepository.findByStatusIn(
+            List.of(MailboxStatus.ACTIVE, MailboxStatus.ERROR)
+        );
     }
 
     @Transactional(readOnly = true)

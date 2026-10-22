@@ -25,8 +25,8 @@ public class OrganizationMailboxRepositoryAdapter implements OrganizationMailbox
     }
 
     @Override
-    public List<OrganizationMailbox> findByStatus(MailboxStatus status) {
-        return mailboxRepository.findByStatus(status);
+    public List<OrganizationMailbox> findByStatusIn(List<MailboxStatus> statuses) {
+        return mailboxRepository.findByStatusIn(statuses);
     }
 
     @Override

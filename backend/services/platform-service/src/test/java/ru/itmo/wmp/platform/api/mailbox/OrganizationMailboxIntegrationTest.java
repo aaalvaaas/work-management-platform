@@ -16,6 +16,7 @@ import ru.itmo.wmp.platform.domain.organization.ParticipantStatus;
 import ru.itmo.wmp.platform.domain.user.User;
 import ru.itmo.wmp.platform.domain.user.UserStatus;
 import ru.itmo.wmp.platform.dto.mailbox.ConnectMailboxRequest;
+import ru.itmo.wmp.platform.dto.mailbox.MailboxCheckRequest;
 import ru.itmo.wmp.platform.dto.organization.AssignOrganizationRoleRequest;
 import ru.itmo.wmp.platform.infrastructure.persistance.organization.JpaOrganizationParticipantRepository;
 import ru.itmo.wmp.platform.infrastructure.persistance.organization.JpaOrganizationRepository;
@@ -180,6 +181,58 @@ public class OrganizationMailboxIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].organizationCode").value("megafaculty"))
             .andExpect(jsonPath("$[0].password").value(PASSWORD));
+    }
+
+    @Test
+    void shouldKeepServingAMailboxThatCouldNotBeReadLastTime() throws Exception {
+        Organization organization = organization();
+        User manager = manager(organization);
+
+        mockMvc.perform(connectRequest(organization, manager, PASSWORD))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            post("/internal/v1/mailboxes/{mailboxId}/checks", mailboxIdOf(organization))
+                .header("X-Internal-Token", "local-internal-key-change-me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                    new MailboxCheckRequest(false, "Failed to fetch unread mails")
+                ))
+        )
+            .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+            get("/internal/v1/mailboxes").header("X-Internal-Token", "local-internal-key-change-me")
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].organizationCode").value("megafaculty"));
+    }
+
+    @Test
+    void shouldNotServeADisabledMailbox() throws Exception {
+        Organization organization = organization();
+        User manager = manager(organization);
+
+        mockMvc.perform(connectRequest(organization, manager, PASSWORD))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            post("/api/v1/organizations/{id}/mailbox/disable", organization.getId())
+                .with(jwt().jwt(token -> token.subject(String.valueOf(manager.getId()))))
+        )
+            .andExpect(status().isOk());
+
+        mockMvc.perform(
+            get("/internal/v1/mailboxes").header("X-Internal-Token", "local-internal-key-change-me")
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
+    private Long mailboxIdOf(Organization organization) {
+        return mailboxRepository.findByOrganizationId(organization.getId())
+            .orElseThrow()
+            .getId();
     }
 
     private MockHttpServletRequestBuilder connectRequest(
