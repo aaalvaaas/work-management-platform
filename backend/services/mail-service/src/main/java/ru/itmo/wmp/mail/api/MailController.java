@@ -9,15 +9,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.itmo.wmp.mail.api.mapper.MailArchiveMapper;
 import ru.itmo.wmp.mail.api.mapper.MailAttachmentMapper;
 import ru.itmo.wmp.mail.api.mapper.MailMapper;
 import ru.itmo.wmp.mail.application.attachment.MailAttachmentDownload;
 import ru.itmo.wmp.mail.application.attachment.MailAttachmentService;
 import ru.itmo.wmp.mail.application.MailService;
+import ru.itmo.wmp.mail.application.archive.MailArchive;
+import ru.itmo.wmp.mail.application.archive.MailParseArchive;
 import ru.itmo.wmp.mail.domain.MailMessage;
 import ru.itmo.wmp.mail.dto.request.MailRequest;
+import ru.itmo.wmp.mail.dto.response.ArchivedMailResponse;
 import ru.itmo.wmp.mail.dto.response.MailAttachmentResponse;
+import ru.itmo.wmp.mail.dto.response.ParseResultResponse;
 import ru.itmo.wmp.mail.dto.response.MailResponse;
+import ru.itmo.wmp.mail.exception.MailNotFoundException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -28,7 +34,10 @@ import java.util.List;
 public class MailController {
     private final MailService mailService;
     private final MailAttachmentService mailAttachmentService;
+    private final MailArchive mailArchive;
+    private final MailParseArchive mailParseArchive;
     private final MailMapper mailMapper;
+    private final MailArchiveMapper mailArchiveMapper;
     private final MailAttachmentMapper mailAttachmentMapper;
 
     @PostMapping
@@ -56,6 +65,25 @@ public class MailController {
         MailMessage mail = mailService.getMail(messageId);
 
         return mailMapper.toResponse(mail);
+    }
+
+    @GetMapping("/{messageId}/document")
+    public ArchivedMailResponse getArchivedMail(
+        @PathVariable String messageId
+    ) {
+        return mailArchive.find(messageId)
+            .map(mailArchiveMapper::toResponse)
+            .orElseThrow(() -> new MailNotFoundException(messageId));
+    }
+
+    @GetMapping("/{messageId}/parses")
+    public List<ParseResultResponse> getParseResults(
+        @PathVariable String messageId
+    ) {
+        return mailParseArchive.parsesOf(messageId)
+            .stream()
+            .map(mailArchiveMapper::toResponse)
+            .toList();
     }
 
     @GetMapping("/{messageId}/attachments")
