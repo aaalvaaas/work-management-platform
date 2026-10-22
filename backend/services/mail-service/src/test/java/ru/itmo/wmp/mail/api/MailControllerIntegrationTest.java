@@ -9,6 +9,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import ru.itmo.wmp.mail.application.archive.ArchivedAttachment;
+import ru.itmo.wmp.mail.application.archive.ArchivedMail;
+import ru.itmo.wmp.mail.application.archive.MailArchive;
+import ru.itmo.wmp.mail.application.archive.MailParseArchive;
+import ru.itmo.wmp.mail.application.archive.ParseRecord;
 import ru.itmo.wmp.mail.application.repository.MailAttachmentRepository;
 import ru.itmo.wmp.mail.application.repository.MailRepository;
 import ru.itmo.wmp.mail.domain.MailAttachment;
@@ -17,6 +22,9 @@ import ru.itmo.wmp.mail.domain.MailProcessingStatus;
 import ru.itmo.wmp.mail.dto.request.MailRequest;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,6 +44,12 @@ public class MailControllerIntegrationTest {
 
     @Autowired
     private MailAttachmentRepository mailAttachmentRepository;
+
+    @Autowired
+    private MailArchive mailArchive;
+
+    @Autowired
+    private MailParseArchive mailParseArchive;
 
     @BeforeEach
     void cleanDatabase() {
@@ -373,5 +387,63 @@ public class MailControllerIntegrationTest {
         )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.fieldErrors").exists());
+    }
+
+    @Test
+    void shouldReturnTheStoredLetterWithItsHeaders() throws Exception {
+        String messageId = "api-" + UUID.randomUUID();
+
+        mailArchive.store(new ArchivedMail(
+            messageId,
+            10L,
+            1L,
+            "ivanov@niuitmo.ru",
+            "megafaculty@niuitmo.ru",
+            "СОГЛАСОВАНИЕ: закупка",
+            LocalDateTime.of(2026, 10, 17, 10, 0),
+            Map.of("x-mailer", List.of("Outlook")),
+            "Нужны три ноутбука",
+            "<p>Нужны три ноутбука</p>",
+            List.of(new ArchivedAttachment("смета.pdf", "application/pdf", 1024L, "mail/smeta.pdf"))
+        ));
+
+        mockMvc.perform(get("/api/v1/mails/{messageId}/document", messageId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.subject").value("СОГЛАСОВАНИЕ: закупка"))
+            .andExpect(jsonPath("$.htmlBody").value("<p>Нужны три ноутбука</p>"))
+            .andExpect(jsonPath("$.headers['x-mailer'][0]").value("Outlook"))
+            .andExpect(jsonPath("$.attachments[0].filename").value("смета.pdf"));
+    }
+
+    @Test
+    void shouldAnswerNotFoundForALetterThatWasNeverStored() throws Exception {
+        mockMvc.perform(get("/api/v1/mails/{messageId}/document", "api-" + UUID.randomUUID()))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnEveryParseOfTheLetter() throws Exception {
+        String messageId = "api-" + UUID.randomUUID();
+
+        mailParseArchive.record(new ParseRecord(
+            messageId,
+            10L,
+            "RULES",
+            "v1",
+            LocalDateTime.of(2026, 10, 17, 10, 0),
+            "Закупка",
+            "Нужны три ноутбука",
+            true,
+            "ivanov@niuitmo.ru",
+            null,
+            Map.of("subject", "СОГЛАСОВАНИЕ: закупка")
+        ));
+
+        mockMvc.perform(get("/api/v1/mails/{messageId}/parses", messageId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].parser").value("RULES"))
+            .andExpect(jsonPath("$[0].parserVersion").value("v1"))
+            .andExpect(jsonPath("$[0].requiresApproval").value(true))
+            .andExpect(jsonPath("$[0].title").value("Закупка"));
     }
 }
