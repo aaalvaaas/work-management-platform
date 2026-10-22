@@ -62,20 +62,26 @@ public class ImapMailClient {
 
     }
 
-    private Session createSession(MailboxConnection mailbox) {
-        Properties props = new Properties();
+    static Properties sessionProperties(MailboxConnection mailbox) {
+        String protocol = protocolOf(mailbox);
 
-        props.put("mail.store.protocol", "imaps");
-        props.put("mail.imap.host", mailbox.host());
-        props.put("mail.imap.port", mailbox.port());
-        props.put("mail.imap.ssl.enabled", mailbox.useSsl());
+        Properties properties = new Properties();
 
-        return Session.getInstance(props);
+        properties.put("mail.store.protocol", protocol);
+        properties.put("mail." + protocol + ".host", mailbox.host());
+        properties.put("mail." + protocol + ".port", String.valueOf(mailbox.port()));
+        properties.put("mail." + protocol + ".ssl.enable", String.valueOf(mailbox.useSsl()));
+
+        return properties;
+    }
+
+    private static String protocolOf(MailboxConnection mailbox) {
+        return mailbox.useSsl() ? "imaps" : "imap";
     }
 
     private Store connect(MailboxConnection mailbox) throws MessagingException {
-        Session session = createSession(mailbox);
-        Store store = session.getStore();
+        Session session = Session.getInstance(sessionProperties(mailbox));
+        Store store = session.getStore(protocolOf(mailbox));
 
         store.connect(
             mailbox.host(),
