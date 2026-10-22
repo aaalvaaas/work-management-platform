@@ -137,6 +137,23 @@ services:
         networks:
             -   wmp-network
 
+    greenmail:
+        image: greenmail/standalone:2.1.9
+
+        container_name: wmp-greenmail
+
+        restart: unless-stopped
+
+        environment:
+            GREENMAIL_OPTS: "-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled -Dgreenmail.verbose"
+
+        ports:
+            -   "3025:3025"
+            -   "3143:3143"
+
+        networks:
+            -   wmp-network
+
     nextcloud:
         image: nextcloud:apache
 
